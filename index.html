@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ระบบจองห้องประชุม - ส่วนส่งเสริมและพัฒนานักศึกษา</title>
+
+  <!-- Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Font: Kanit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <!-- Material Symbols (icons) -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:FILL@0..1" />
+
+  <style>
+    :root {
+      --brand: #2563eb; /* indigo-600-ish */
+      --brand-2: #0ea5e9; /* sky-500-ish */
+      --muted: #64748b;   /* slate-500 */
+      --ok: #16a34a;      /* green-600 */
+      --warn: #eab308;    /* yellow-500 */
+      --err: #dc2626;     /* red-600 */
+    }
+    html, body { height: 100%; }
+    body { font-family: 'Kanit', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif; }
+
+    /* Premium card shadow */
+    .elevate { box-shadow: 0 10px 25px -10px rgba(2,6,23,.25), 0 8px 16px -8px rgba(2,6,23,.15); }
+
+    /* Material icon helper */
+    .mi { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; font-size: 20px; display: inline-block; line-height: 1; }
+
+    /* Calendar grid */
+    .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .5rem; }
+
+    /* Modal base */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(2,6,23,.55); backdrop-filter: blur(2px); display: none; z-index: 50; }
+    .modal { max-height: 86vh; }
+
+    /* Toast */
+    .toast-wrap { position: fixed; right: 1rem; bottom: 1rem; z-index: 60; display: flex; flex-direction: column; gap: .75rem; }
+
+    /* Loading overlay */
+    .loading-backdrop { position: fixed; inset: 0; background: rgba(255,255,255,.7); display: none; z-index: 70; align-items: center; justify-content: center; }
+    .spinner {
+      width: 46px; height: 46px; border-radius: 9999px;
+      border: 4px solid rgba(2,6,23,.2); border-top-color: var(--brand);
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg);} }
+
+    /* Table sort indicator */
+    th.sortable { cursor: pointer; user-select: none; }
+    th.sortable .sort-icon { opacity: .35; transition: opacity .15s; }
+    th.sortable:hover .sort-icon { opacity: .9; }
+
+    /* Custom select disabled look (extra hint besides native disabled) */
+    option[disabled] { color: #94a3b8; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <!-- Top Bar -->
+  <header class="bg-gradient-to-r from-indigo-600 to-sky-500 text-white">
+    <div class="max-w-7xl mx-auto px-4 py-5 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="mi text-white/90 text-3xl">event</span>
+        <div>
+          <h1 class="text-2xl font-semibold leading-tight">ระบบจอง “ห้องประชุมส่วนส่งเสริมและพัฒนานักศึกษา”</h1>
+          <p class="text-white/85 text-sm">Single Page • localStorage • Modern UI</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button id="openCreateBtn" class="inline-flex items-center gap-2 rounded-xl bg-white/95 text-slate-800 hover:bg-white px-4 py-2 font-medium elevate">
+          <span class="mi">add</span> จองห้อง
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <!-- Calendar Card -->
+    <section class="bg-white rounded-2xl p-4 sm:p-6 elevate">
+      <div class="flex flex-col sm:flex-row gap-3 sm:items-center justify-between mb-4">
+        <div class="flex items-center gap-2">
+          <button id="prevMonthBtn" class="rounded-lg border border-slate-200 px-3 py-2 hover:bg-slate-50"><span class="mi">chevron_left</span></button>
+          <button id="todayBtn" class="rounded-lg border border-slate-200 px-3 py-2 hover:bg-slate-50 hidden sm:inline-flex">วันนี้</button>
+          <button id="nextMonthBtn" class="rounded-lg border border-slate-200 px-3 py-2 hover:bg-slate-50"><span class="mi">chevron_right</span></button>
+        </div>
+        <h2 id="monthLabel" class="text-xl font-semibold text-slate-900"></h2>
+        <div class="flex items-center gap-3 text-sm text-slate-600">
+          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-indigo-500"></span>มีการจอง</span>
+          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-300"></span>ว่าง</span>
+        </div>
+      </div>
+
+      <!-- Weekday header -->
+      <div class="cal-grid text-center text-xs uppercase tracking-wide text-slate-500">
+        <div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div>
+      </div>
+
+      <!-- Calendar grid -->
+      <div id="calendarGrid" class="cal-grid mt-2"></div>
+    </section>
+
+    <!-- Booking table -->
+    <section class="bg-white rounded-2xl p-4 sm:p-6 elevate">
+      <div class="flex flex-col sm:flex-row gap-3 sm:items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold">ตารางรายการจอง</h3>
+        <div class="flex items-center gap-2">
+          <label class="text-sm text-slate-600">แสดงต่อหน้า</label>
+          <select id="pageSizeSel" class="rounded-lg border border-slate-300 px-2 py-1 text-sm">
+            <option>10</option>
+            <option>15</option>
+            <option>20</option>
+            <option>50</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="text-left border-b border-slate-200">
+              <th class="py-2 pr-3 font-medium text-slate-600 sortable" data-key="room">ห้อง <span class="mi sort-icon align-middle">unfold_more</span></th>
+              <th class="py-2 px-3 font-medium text-slate-600 sortable" data-key="date">วันที่ <span class="mi sort-icon align-middle">unfold_more</span></th>
+              <th class="py-2 px-3 font-medium text-slate-600 sortable" data-key="time">ช่วงเวลาเริ่มต้น - สิ้นสุด <span class="mi sort-icon align-middle">unfold_more</span></th>
+              <th class="py-2 px-3 font-medium text-slate-600 sortable" data-key="title">หัวข้อเรื่องประชุม <span class="mi sort-icon align-middle">unfold_more</span></th>
+              <th class="py-2 px-3 font-medium text-slate-600 sortable" data-key="attendees">จำนวนคน <span class="mi sort-icon align-middle">unfold_more</span></th>
+              <th class="py-2 px-3 font-medium text-slate-600 sortable" data-key="booker">ชื่อผู้จอง <span class="mi sort-icon align-middle">unfold_more</span></th>
+              <th class="py-2 pl-3 font-medium text-slate-600">จัดการ</th>
+            </tr>
+          </thead>
+          <tbody id="bookingTbody"></tbody>
+        </table>
+      </div>
+
+      <div class="flex items-center justify-between mt-4">
+        <div id="tableInfo" class="text-sm text-slate-600"></div>
+        <div class="flex items-center gap-1">
+          <button id="firstPageBtn" class="rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-50"><span class="mi">first_page</span></button>
+          <button id="prevPageBtn" class="rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-50"><span class="mi">chevron_left</span></button>
+          <span id="pageIndicator" class="px-3 text-sm"></span>
+          <button id="nextPageBtn" class="rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-50"><span class="mi">chevron_right</span></button>
+          <button id="lastPageBtn" class="rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-50"><span class="mi">last_page</span></button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Day detail modal -->
+  <div id="dayModal" class="modal-backdrop">
+    <div class="mx-auto w-[95%] max-w-2xl mt-10">
+      <div class="bg-white rounded-2xl p-5 elevate modal">
+        <div class="flex items-start justify-between">
+          <div>
+            <h4 id="dayModalTitle" class="text-lg font-semibold">รายละเอียดการจอง</h4>
+            <p id="dayModalSub" class="text-sm text-slate-500"></p>
+          </div>
+          <button class="rounded-lg p-2 hover:bg-slate-50" onclick="closeDayModal()"><span class="mi">close</span></button>
+        </div>
+        <div id="dayModalBody" class="mt-4 space-y-3"></div>
+        <div class="mt-5 flex items-center justify-end gap-2">
+          <button class="rounded-xl border border-slate-200 px-4 py-2 hover:bg-slate-50" onclick="closeDayModal()">ปิด</button>
+          <button id="dayModalBookBtn" class="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 inline-flex items-center gap-2">
+            <span class="mi">add</span> จองวันที่นี้
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Booking modal -->
+  <div id="createModal" class="modal-backdrop">
+    <div class="mx-auto w-[95%] max-w-3xl mt-8">
+      <form id="createForm" class="bg-white rounded-2xl p-5 elevate modal" onsubmit="handleCreateSubmit(event)">
+        <div class="flex items-start justify-between">
+          <div>
+            <h4 class="text-lg font-semibold">สร้างการจองห้องประชุม</h4>
+            <p class="text-sm text-slate-500">ห้อง: ห้องประชุมส่วนส่งเสริมและพัฒนานักศึกษา</p>
+          </div>
+          <button type="button" class="rounded-lg p-2 hover:bg-slate-50" onclick="closeCreateModal()"><span class="mi">close</span></button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          <div class="space-y-1">
+            <label for="dateInput" class="text-sm text-slate-700">เลือกวันที่<span class="text-red-500">*</span></label>
+            <input id="dateInput" type="date" class="w-full rounded-lg border border-slate-300 px-3 py-2" required />
+            <p id="dateHelp" class="text-xs text-slate-500">เมื่อเลือกวันที่ ระบบจะแสดงรายการที่ถูกจองแล้ว และจำกัดช่วงเวลาที่เลือกได้</p>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-sm text-slate-700">ผู้จอง<span class="text-red-500">*</span></label>
+            <select id="bookerSel" class="w-full rounded-lg border border-slate-300 px-3 py-2" required>
+              <option value="" selected disabled>— เลือกชื่อผู้จอง —</option>
+              <option>นางชูใจ ช่วยชู</option>
+              <option>นายชัชพล ยิ่งดำนุ่น</option>
+              <option>นางสาวนัจนันท์ หวายนำ</option>
+              <option>นางสาวอัจฉรา ทองนาค</option>
+              <option>นางสาวขวัญใจ นัคราเรือง</option>
+              <option>นางสาวปิยวรรณ คงอินทร์</option>
+              <option>นางสาวประภา มายิ</option>
+              <option>นายโอม สุขปลอด</option>
+              <option>นายมณเฑียร สุขกุล</option>
+              <option>ว่าที่ ร.อ.ศราวุธ อินปิน</option>
+              <option>นายสุริยันต์ ถึงแสง</option>
+              <option>นางสาวชวนพิศ เกื้อมา</option>
+              <option>นางสาวศุภนิดา เกติยะ</option>
+              <option>นางสาวนิตยา แก่นบุญ</option>
+              <option>นายวัชรินทร์ เกตุเพชร</option>
+              <option>นางพรพิลาส นราพงศ์</option>
+              <option>นางอรอนงค์ สุขปลอด</option>
+              <option>นางสาววิมลลักษณ์ ธีรวัจน์</option>
+            </select>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-sm text-slate-700">เวลาเริ่มต้น<span class="text-red-500">*</span></label>
+            <select id="startSel" class="w-full rounded-lg border border-slate-300 px-3 py-2" required></select>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-sm text-slate-700">เวลาสิ้นสุด<span class="text-red-500">*</span></label>
+            <select id="endSel" class="w-full rounded-lg border border-slate-300 px-3 py-2" required></select>
+            <p id="timeHelp" class="text-xs text-slate-500"></p>
+          </div>
+
+          <div class="space-y-1 sm:col-span-2">
+            <label class="text-sm text-slate-700">หัวข้อเรื่องประชุม<span class="text-red-500">*</span></label>
+            <input id="titleInput" type="text" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="เช่น ประชุมคณะทำงาน..." required />
+          </div>
+
+          <div class="space-y-1 sm:col-span-2">
+            <label class="text-sm text-slate-700">จำนวนคน (ตัวเลขเท่านั้น)<span class="text-red-500">*</span></label>
+            <input id="attInput" type="number" min="1" step="1" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="เช่น 20" required />
+          </div>
+
+          <div class="sm:col-span-2">
+            <div class="rounded-xl border border-slate-200 p-3 bg-slate-50">
+              <div class="flex items-center gap-2 text-slate-700 text-sm font-medium mb-2"><span class="mi">info</span> รายการที่ถูกจองแล้วในวันเลือก</div>
+              <ul id="bookedList" class="text-sm space-y-1 text-slate-700">
+                <li class="text-slate-500">— ยังไม่มีข้อมูล —</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-5 flex items-center justify-end gap-2">
+          <button type="button" class="rounded-xl border border-slate-200 px-4 py-2 hover:bg-slate-50" onclick="closeCreateModal()">ยกเลิก</button>
+          <button type="submit" class="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 inline-flex items-center gap-2">
+            <span class="mi">save</span> บันทึกการจอง
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast container -->
+  <div id="toastWrap" class="toast-wrap"></div>
+
+  <!-- Loading overlay -->
+  <div id="loading" class="loading-backdrop">
+    <div class="bg-white rounded-2xl p-6 elevate flex flex-col items-center gap-3">
+      <div class="spinner"></div>
+      <div class="text-sm text-slate-600">กำลังประมวลผล...</div>
+    </div>
+  </div>
+
+  <script>
+  // ======= Constants / Helpers =======
+  const ROOM_NAME = "ห้องประชุมส่วนส่งเสริมและพัฒนานักศึกษา";
+  const LS_KEY = "wu_room_bookings_v1";
+  const tz = "Asia/Bangkok";
+  const dayNames = ["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์","เสาร์"];
+  const monthNamesTh = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
+
+  // Time range 08:30 - 22:00 step 30 min
+  const START_MINUTES = 8*60 + 30; // 510
+  const END_MINUTES = 22*60 + 0;   // 1320
+  const STEP = 30;
+
+  function minutesToHHMM(total){
+    const h = Math.floor(total/60).toString().padStart(2,"0");
+    const m = (total%60).toString().padStart(2,"0");
+    return `${h}:${m}`;
+  }
+  function HHMMtoMinutes(hhmm){
+    const [h,m] = hhmm.split(":").map(Number);
+    return h*60 + m;
+  }
+  function timePoints(){ // 08:30..22:00 inclusive
+    const pts = [];
+    for(let t=START_MINUTES; t<=END_MINUTES; t+=STEP){ pts.push(minutesToHHMM(t)); }
+    return pts;
+  }
+  // map HH:MM to index where 08:30 is 0
+  function timeToIndex(hhmm){
+    return Math.round((HHMMtoMinutes(hhmm) - START_MINUTES)/STEP);
+  }
+  function indexToTime(idx){
+    return minutesToHHMM(START_MINUTES + idx*STEP);
+  }
+
+  function fmtDateTh(dStr){
+    // YYYY-MM-DD -> DD/MM/YYYY
+    const [y,m,d] = dStr.split("-").map(Number);
+    return `${d.toString().padStart(2,"0")}/${m.toString().padStart(2,"0")}/${y}`;
+  }
+  function todayYMD(){
+    const d = new Date();
+    const yy = d.getFullYear();
+    const mm = (d.getMonth()+1).toString().padStart(2,"0");
+    const dd = d.getDate().toString().padStart(2,"0");
+    return `${yy}-${mm}-${dd}`;
+  }
+
+  // ======= Storage Layer =======
+  function loadBookings(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      if(!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    }catch(e){ return []; }
+  }
+  function saveBookings(arr){
+    localStorage.setItem(LS_KEY, JSON.stringify(arr));
+  }
+
+  // Validate overlap: [s,e) intersects [S,E)?
+  function isOverlap(sIdx, eIdx, S, E){ return sIdx < E && eIdx > S; }
+
+  function addBooking(bk){
+    const list = loadBookings();
+
+    // Rule 1: forbid exact same start-end on same date for same room
+    const existsSamePair = list.some(x => x.room===bk.room && x.date===bk.date && x.start===bk.start && x.end===bk.end);
+    if(existsSamePair){
+      throw new Error("มีการจองช่วงเวลาเดียวกันในวันนี้อยู่แล้ว");
+    }
+
+    // Rule 2: also forbid ANY overlapping interval on same date for same room (เพื่อกันชนกัน)
+    const sIdx = timeToIndex(bk.start);
+    const eIdx = timeToIndex(bk.end);
+    if(sIdx>=eIdx){ throw new Error("ช่วงเวลาไม่ถูกต้อง"); }
+
+    const overlap = list.some(x => {
+      if(x.room!==bk.room || x.date!==bk.date) return false;
+      const S = timeToIndex(x.start);
+      const E = timeToIndex(x.end);
+      return isOverlap(sIdx, eIdx, S, E);
+    });
+    if(overlap){
+      throw new Error("ช่วงเวลาที่เลือกชนกับรายการจองอื่น");
+    }
+
+    // OK
+    list.push({...bk, id: crypto.randomUUID()});
+    saveBookings(list);
+    return true;
+  }
+  function removeBooking(id){
+    const list = loadBookings();
+    const next = list.filter(x => x.id !== id);
+    saveBookings(next);
+  }
+
+  // ======= Calendar =======
+  let currentYear, currentMonth; // 0-based month
+
+  function renderCalendar(){
+    const cal = document.getElementById("calendarGrid");
+    cal.innerHTML = "";
+
+    const first = new Date(currentYear, currentMonth, 1);
+    const firstDay = first.getDay(); // 0 sun
+    const last = new Date(currentYear, currentMonth+1, 0);
+    const lastDate = last.getDate();
+
+    document.getElementById("monthLabel").textContent = `${monthNamesTh[currentMonth]} ${currentYear}`;
+
+    // blanks
+    for(let i=0;i<firstDay;i++){
+      const div = document.createElement("div");
+      div.className = "rounded-xl border border-dashed border-slate-200/60 h-28 bg-slate-50/40";
+      cal.appendChild(div);
+    }
+
+    const today = todayYMD();
+
+    for(let d=1; d<=lastDate; d++){
+      const ymd = `${currentYear}-${(currentMonth+1).toString().padStart(2,"0")}-${d.toString().padStart(2,"0")}`;
+      const daily = loadBookings().filter(x => x.date === ymd);
+      const has = daily.length>0;
+
+      const card = document.createElement("button");
+      card.className = "text-left rounded-xl border h-28 p-2 flex flex-col justify-between hover:border-indigo-300 transition bg-white";
+      card.classList.add(has ? "border-indigo-200" : "border-slate-200");
+
+      // top row: date + today badge
+      const top = document.createElement("div");
+      top.className = "flex items-center justify-between";
+      const dn = document.createElement("div");
+      dn.className = "text-sm font-semibold";
+      dn.textContent = d;
+      const bdg = document.createElement("span");
+      bdg.className = "text-[10px] rounded-full px-2 py-0.5";
+      if(ymd===today){
+        bdg.textContent = "วันนี้";
+        bdg.classList.add("bg-sky-100","text-sky-700","border","border-sky-200");
+      }
+      top.appendChild(dn);
+      top.appendChild(bdg);
+
+      // list (max 3)
+      const list = document.createElement("div");
+      list.className = "space-y-1";
+      daily.slice(0,3).forEach(bk=>{
+        const it = document.createElement("div");
+        it.className = "text-[11px] px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 truncate";
+        it.textContent = `${bk.start}-${bk.end} • ${bk.title}`;
+        list.appendChild(it);
+      });
+      if(daily.length>3){
+        const more = document.createElement("div");
+        more.className = "text-[11px] text-slate-500";
+        more.textContent = `+ อีก ${daily.length-3} รายการ`;
+        list.appendChild(more);
+      }
+
+      card.appendChild(top);
+      card.appendChild(list);
+
+      // dot color
+      const dot = document.createElement("span");
+      dot.className = `w-2 h-2 rounded-full ${has? "bg-indigo-500":"bg-slate-300"}`;
+      card.appendChild(dot);
+
+      card.addEventListener("click", ()=> openDayModal(ymd));
+      cal.appendChild(card);
+    }
+  }
+
+  function openDayModal(ymd){
+    const d = new Date(ymd+"T00:00:00");
+    const label = `${dayNames[d.getDay()]}ที่ ${d.getDate()} ${monthNamesTh[d.getMonth()]} ${d.getFullYear()}`;
+    document.getElementById("dayModalTitle").textContent = "การจองประจำวัน";
+    document.getElementById("dayModalSub").textContent = label;
+
+    const body = document.getElementById("dayModalBody");
+    body.innerHTML = "";
+
+    const daily = loadBookings().filter(x => x.date===ymd).sort((a,b)=>{
+      return timeToIndex(a.start) - timeToIndex(b.start);
+    });
+
+    if(daily.length===0){
+      body.innerHTML = `<div class="text-slate-600 text-sm">ยังไม่มีการจองในวันนี้</div>`;
+    }else{
+      daily.forEach(bk=>{
+        const row = document.createElement("div");
+        row.className = "rounded-xl border border-slate-200 p-3 flex items-start justify-between";
+        row.innerHTML = `
+          <div class="text-sm">
+            <div class="font-medium">${bk.start} - ${bk.end} • ${bk.title}</div>
+            <div class="text-slate-600">ผู้จอง: ${bk.booker} • จำนวน ${bk.attendees} คน</div>
+          </div>
+          <button class="rounded-lg p-2 hover:bg-slate-50" title="ลบรายการ" data-id="${bk.id}">
+            <span class="mi text-red-600">delete</span>
+          </button>
+        `;
+        row.querySelector("button").addEventListener("click", ()=>{
+          confirmDelete(bk.id, ()=>{ openDayModal(ymd); refreshAll(); });
+        });
+        body.appendChild(row);
+      });
+    }
+
+    const bookBtn = document.getElementById("dayModalBookBtn");
+    bookBtn.onclick = ()=>{
+      openCreateModal(ymd);
+      closeDayModal();
+    };
+
+    showBackdrop("dayModal", true);
+  }
+  function closeDayModal(){ showBackdrop("dayModal", false); }
+
+  // ======= Create Modal / Time Logic =======
+  function openCreateModal(prefillYMD=null){
+    const dateEl = document.getElementById("dateInput");
+    dateEl.value = prefillYMD || todayYMD();
+
+    // Prepare selects
+    populateTimeSelects();
+    // Load booked list for the date
+    updateBookedListAndDisable(dateEl.value);
+
+    showBackdrop("createModal", true);
+  }
+  function closeCreateModal(){ showBackdrop("createModal", false); }
+
+  function populateTimeSelects(){
+    const pts = timePoints();
+    const startSel = document.getElementById("startSel");
+    const endSel = document.getElementById("endSel");
+    startSel.innerHTML = `<option value="" selected disabled>— เลือกเวลาเริ่มต้น —</option>`;
+    endSel.innerHTML = `<option value="" selected disabled>— เลือกเวลาสิ้นสุด —</option>`;
+
+    // Start: all points except last (22:00)
+    for(let i=0;i<pts.length-1;i++){
+      const opt = document.createElement("option");
+      opt.value = pts[i];
+      opt.textContent = pts[i];
+      startSel.appendChild(opt);
+    }
+    // End: all points except first (08:30)
+    for(let i=1;i<pts.length;i++){
+      const opt = document.createElement("option");
+      opt.value = pts[i];
+      opt.textContent = pts[i];
+      endSel.appendChild(opt);
+    }
+
+    // Reset help
+    document.getElementById("timeHelp").textContent = "";
+  }
+
+  function updateBookedListAndDisable(ymd){
+    const list = loadBookings().filter(x => x.date===ymd).sort((a,b)=> timeToIndex(a.start)-timeToIndex(b.start));
+    const ul = document.getElementById("bookedList");
+    ul.innerHTML = "";
+    if(list.length===0){
+      ul.innerHTML = `<li class="text-slate-500">— ยังไม่มีข้อมูล —</li>`;
+    }else{
+      list.forEach(x=>{
+        const li = document.createElement("li");
+        li.textContent = `${x.start} - ${x.end} • ${x.title} • ${x.booker}`;
+        ul.appendChild(li);
+      });
+    }
+
+    // Disable illegal START options (inside any booked block)
+    const blocked = new Set();
+    list.forEach(x=>{
+      const s = timeToIndex(x.start), e = timeToIndex(x.end);
+      for(let k=s; k<e; k++) blocked.add(k);
+    });
+
+    const startSel = document.getElementById("startSel");
+    [...startSel.options].forEach(opt=>{
+      if(!opt.value) return;
+      const idx = timeToIndex(opt.value);
+      opt.disabled = blocked.has(idx);
+    });
+
+    // When date changes, reset selections
+    document.getElementById("startSel").value = "";
+    document.getElementById("endSel").value = "";
+    // And update End availability accordingly
+    updateEndOptions();
+  }
+
+  function updateEndOptions(){
+    const startVal = document.getElementById("startSel").value;
+    const endSel = document.getElementById("endSel");
+    const dateVal = document.getElementById("dateInput").value;
+    const daily = loadBookings().filter(x => x.date===dateVal);
+
+    // reset all
+    [...endSel.options].forEach(opt=>{
+      if(!opt.value) return;
+      opt.disabled = false;
+      opt.hidden = false;
+    });
+
+    if(!startVal){
+      document.getElementById("timeHelp").textContent = "";
+      return;
+    }
+    const sIdx = timeToIndex(startVal);
+
+    // find first blocked index >= sIdx
+    let firstBlocked = Infinity;
+    daily.forEach(x=>{
+      const S = timeToIndex(x.start), E = timeToIndex(x.end);
+      if(E<=sIdx) return; // booking ends before start
+      if(S<=sIdx && E> sIdx){
+        // start lies inside a booking (shouldn't happen because start is disabled), just lock
+        firstBlocked = Math.min(firstBlocked, E);
+      }else if(S> sIdx){
+        firstBlocked = Math.min(firstBlocked, S);
+      }
+    });
+
+    const maxEndIdx = (isFinite(firstBlocked) ? firstBlocked : (timePoints().length-0)); // up to last point
+    // Disable any end <= sIdx or > maxEndIdx
+    [...endSel.options].forEach(opt=>{
+      if(!opt.value) return;
+      const eIdx = timeToIndex(opt.value);
+      // End must be strictly greater than start and <= maxEndIdx
+      const dis = (eIdx <= sIdx) || (eIdx > maxEndIdx);
+      opt.disabled = dis;
+      opt.hidden = dis;
+    });
+
+    const endHelp = (isFinite(firstBlocked))
+      ? `สามารถเลือกเวลาสิ้นสุดได้ถึง ${indexToTime(maxEndIdx)}`
+      : `สามารถเลือกได้จนถึง 22:00`;
+    document.getElementById("timeHelp").textContent = endHelp;
+  }
+
+  // ======= Table (Sort + Pagination) =======
+  let sortKey = "date"; // 'room','date','time','title','attendees','booker'
+  let sortDir = "asc";
+  let page = 1;
+  let pageSize = 10;
+
+  function getSortedBookings(){
+    const list = loadBookings();
+    const out = [...list].sort((a,b)=>{
+      let va, vb;
+      if(sortKey==="time"){
+        va = timeToIndex(a.start);
+        vb = timeToIndex(b.start);
+        if(a.date!==b.date){
+          // primary sort by date
+          return (a.date < b.date ? -1: 1) * (sortDir==="asc"?1:-1);
+        }
+      }else if(sortKey==="attendees"){
+        va = Number(a.attendees);
+        vb = Number(b.attendees);
+      }else if(sortKey==="date"){
+        va = a.date; vb = b.date;
+      }else{
+        va = a[sortKey]; vb = b[sortKey];
+      }
+      if(va<vb) return (sortDir==="asc"? -1: 1);
+      if(va>vb) return (sortDir==="asc"? 1: -1);
+      // tie-break by start time then title
+      const ti = timeToIndex(a.start) - timeToIndex(b.start);
+      if(ti!==0) return ti*(sortDir==="asc"?1:-1);
+      return (a.title||"").localeCompare(b.title||"")*(sortDir==="asc"?1:-1);
+    });
+    return out;
+  }
+
+  function renderTable(){
+    const tbody = document.getElementById("bookingTbody");
+    const data = getSortedBookings();
+    const total = data.length;
+
+    const maxPage = Math.max(1, Math.ceil(total / pageSize));
+    if(page>maxPage) page = maxPage;
+    const startIdx = (page-1)*pageSize;
+    const rows = data.slice(startIdx, startIdx+pageSize);
+
+    tbody.innerHTML = "";
+    if(rows.length===0){
+      tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-500">— ไม่มีข้อมูล —</td></tr>`;
+    }else{
+      rows.forEach(bk=>{
+        const tr = document.createElement("tr");
+        tr.className = "border-b border-slate-100 hover:bg-slate-50";
+        tr.innerHTML = `
+          <td class="py-2 pr-3">${bk.room}</td>
+          <td class="py-2 px-3">${fmtDateTh(bk.date)}</td>
+          <td class="py-2 px-3">${bk.start} - ${bk.end}</td>
+          <td class="py-2 px-3">${bk.title}</td>
+          <td class="py-2 px-3">${bk.attendees}</td>
+          <td class="py-2 px-3">${bk.booker}</td>
+          <td class="py-2 pl-3">
+            <button class="rounded-lg p-2 hover:bg-slate-100 text-red-600" title="ลบ" data-id="${bk.id}">
+              <span class="mi">delete</span>
+            </button>
+          </td>
+        `;
+        tr.querySelector("button").addEventListener("click", ()=>{
+          confirmDelete(bk.id, ()=>{ renderTable(); renderCalendar(); showToast("ลบรายการแล้ว","ok"); });
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById("tableInfo").textContent = total>0
+      ? `แสดง ${startIdx+1}-${Math.min(startIdx+rows.length, total)} จากทั้งหมด ${total} รายการ`
+      : `ไม่มีรายการ`;
+
+    document.getElementById("pageIndicator").textContent = `หน้า ${page}/${Math.max(1, Math.ceil(total/pageSize))}`;
+  }
+
+  function setSort(key){
+    if(sortKey===key){
+      sortDir = (sortDir==="asc" ? "desc" : "asc");
+    }else{
+      sortKey = key;
+      sortDir = "asc";
+    }
+    renderTable();
+  }
+
+  // ======= UI Utilities =======
+  function showBackdrop(id, show){
+    const el = document.getElementById(id);
+    el.style.display = show ? "block" : "none";
+  }
+  function showToast(msg, type="info"){
+    const wrap = document.getElementById("toastWrap");
+    const div = document.createElement("div");
+    const color = type==="ok" ? "bg-green-600" : type==="err" ? "bg-red-600" : "bg-slate-800";
+    const icon = type==="ok" ? "check_circle" : type==="err" ? "error" : "info";
+    div.className = `text-white ${color} rounded-xl px-4 py-3 elevate flex items-start gap-2 w-[min(92vw,420px)]`;
+    div.innerHTML = `<span class="mi">`+icon+`</span> <div class="text-sm leading-5">${msg}</div>`;
+    wrap.appendChild(div);
+    setTimeout(()=>{ div.style.opacity="0"; div.style.transform="translateY(10px)"; }, 2600);
+    setTimeout(()=>{ wrap.removeChild(div); }, 3000);
+  }
+  function showLoading(show){
+    document.getElementById("loading").style.display = show? "flex":"none";
+  }
+
+  function confirmDelete(id, after){
+    if(!confirm("ยืนยันการลบรายการนี้?")) return;
+    removeBooking(id);
+    after && after();
+  }
+
+  // ======= Event Handlers =======
+  function handleCreateSubmit(e){
+    e.preventDefault();
+    const date = document.getElementById("dateInput").value;
+    const start = document.getElementById("startSel").value;
+    const end = document.getElementById("endSel").value;
+    const title = document.getElementById("titleInput").value.trim();
+    const attendees = Number(document.getElementById("attInput").value);
+    const booker = document.getElementById("bookerSel").value;
+
+    if(!date || !start || !end || !title || !booker || !Number.isFinite(attendees) || attendees<=0){
+      showToast("กรุณากรอกข้อมูลให้ครบและถูกต้อง","err"); return;
+    }
+    if(timeToIndex(end) <= timeToIndex(start)){
+      showToast("เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้น","err"); return;
+    }
+
+    const booking = { room: ROOM_NAME, date, start, end, title, attendees, booker };
+    try{
+      showLoading(true);
+      // simulate small delay
+      setTimeout(()=>{
+        addBooking(booking);
+        showLoading(false);
+        showToast("บันทึกการจองสำเร็จ","ok");
+        closeCreateModal();
+        refreshAll();
+      }, 450);
+    }catch(err){
+      showLoading(false);
+      showToast(err.message || "ไม่สามารถบันทึกได้","err");
+    }
+  }
+
+  // ======= Init & Wiring =======
+  function refreshAll(){
+    renderCalendar();
+    renderTable();
+  }
+
+  document.addEventListener("DOMContentLoaded", ()=>{
+    // Calendar init to today month
+    const now = new Date();
+    currentYear = now.getFullYear();
+    currentMonth = now.getMonth();
+
+    // Render
+    refreshAll();
+
+    // Calendar controls
+    document.getElementById("prevMonthBtn").addEventListener("click", ()=>{
+      currentMonth--; if(currentMonth<0){ currentMonth=11; currentYear--; } renderCalendar();
+    });
+    document.getElementById("nextMonthBtn").addEventListener("click", ()=>{
+      currentMonth++; if(currentMonth>11){ currentMonth=0; currentYear++; } renderCalendar();
+    });
+    document.getElementById("todayBtn").addEventListener("click", ()=>{
+      const t = new Date();
+      currentYear = t.getFullYear();
+      currentMonth = t.getMonth();
+      renderCalendar();
+    });
+
+    // Create modal open
+    document.getElementById("openCreateBtn").addEventListener("click", ()=> openCreateModal());
+
+    // Date change in create modal
+    document.getElementById("dateInput").addEventListener("change", (e)=> updateBookedListAndDisable(e.target.value));
+    // Start change => update end options
+    document.getElementById("startSel").addEventListener("change", updateEndOptions);
+
+    // Table sort
+    document.querySelectorAll("th.sortable").forEach(th=>{
+      th.addEventListener("click", ()=> setSort(th.dataset.key));
+    });
+
+    // Pagination
+    document.getElementById("pageSizeSel").addEventListener("change", (e)=>{
+      pageSize = Number(e.target.value)||10; page = 1; renderTable();
+    });
+    document.getElementById("firstPageBtn").addEventListener("click", ()=>{ page=1; renderTable(); });
+    document.getElementById("prevPageBtn").addEventListener("click", ()=>{ page=Math.max(1, page-1); renderTable(); });
+    document.getElementById("nextPageBtn").addEventListener("click", ()=>{
+      const total = getSortedBookings().length;
+      const maxP = Math.max(1, Math.ceil(total/pageSize));
+      page = Math.min(maxP, page+1); renderTable();
+    });
+    document.getElementById("lastPageBtn").addEventListener("click", ()=>{
+      const total = getSortedBookings().length;
+      page = Math.max(1, Math.ceil(total/pageSize)); renderTable();
+    });
+  });
+  </script>
+</body>
+</html>
