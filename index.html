@@ -55,15 +55,15 @@
       <div class="flex items-center gap-3">
         <span class="mi text-white/90 text-3xl">event</span>
         <div>
-          <h1 class="text-2xl font-semibold leading-tight">ระบบจอง “ห้องประชุมส่วนส่งเสริมและพัฒนานักศึกษา”</h1>
+          <h1 class="text-2xl sm:text-3xl font-semibold leading-tight">ระบบจอง “ห้องประชุมส่วนส่งเสริมและพัฒนานักศึกษา”</h1>
         </div>
       </div>
       <div class="flex items-center gap-2">
         <span id="adminBadge" class="hidden rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 px-3 py-1 text-sm">Admin</span>
-        <button id="adminBtn" class="inline-flex items-center gap-2 rounded-xl bg-white/95 text-slate-800 hover:bg-white px-4 py-2 font-medium elevate">
-          <span class="mi">admin_panel_settings</span> Admin
+        <button id="adminBtn" class="inline-flex items-center gap-2 rounded-xl bg-white/95 text-slate-800 hover:bg-white px-3 sm:px-4 py-2 font-medium elevate">
+          <span class="mi">admin_panel_settings</span> <span class="hidden sm:inline">Admin</span>
         </button>
-        <button id="openCreateBtn" class="inline-flex items-center gap-2 rounded-xl bg-white/95 text-slate-800 hover:bg-white px-4 py-2 font-medium elevate">
+        <button id="openCreateBtn" class="inline-flex items-center gap-2 rounded-xl bg-white/95 text-slate-800 hover:bg-white px-3 sm:px-4 py-2 font-medium elevate">
           <span class="mi">add</span> จองห้อง
         </button>
       </div>
@@ -71,24 +71,24 @@
   </header>
 
   <!-- Main -->
-  <main class="max-w-7xl mx-auto px-4 py-6 space-y-6">
+  <main class="max-w-7xl mx-auto px-3 sm:px-4 py-6 space-y-6">
     <!-- Calendar Card -->
-    <section class="bg-white rounded-2xl p-4 sm:p-6 elevate">
+    <section class="bg-white rounded-2xl p-3 sm:p-6 elevate">
       <div class="flex flex-col sm:flex-row gap-3 sm:items-center justify-between mb-4">
         <div class="flex items-center gap-2">
           <button id="prevMonthBtn" class="rounded-lg border border-slate-200 px-3 py-2 hover:bg-slate-50"><span class="mi">chevron_left</span></button>
           <button id="todayBtn" class="rounded-lg border border-slate-200 px-3 py-2 hover:bg-slate-50 hidden sm:inline-flex">วันนี้</button>
           <button id="nextMonthBtn" class="rounded-lg border border-slate-200 px-3 py-2 hover:bg-slate-50"><span class="mi">chevron_right</span></button>
         </div>
-        <h2 id="monthLabel" class="text-xl font-semibold text-slate-900"></h2>
-        <div class="flex items-center gap-3 text-sm text-slate-600">
-          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-indigo-500"></span>มีการจอง</span>
-          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-300"></span>ว่าง</span>
+        <h2 id="monthLabel" class="text-lg sm:text-xl font-semibold text-slate-900"></h2>
+        <div class="flex items-center gap-3 text-xs sm:text-sm text-slate-600">
+          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span>มีการจอง</span>
+          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span>ว่าง</span>
         </div>
       </div>
 
       <!-- Weekday header -->
-      <div class="cal-grid text-center text-xs uppercase tracking-wide text-slate-500">
+      <div class="cal-grid text-center text-[10px] sm:text-xs uppercase tracking-wide text-slate-500">
         <div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div>
       </div>
 
@@ -97,7 +97,7 @@
     </section>
 
     <!-- Booking table -->
-    <section class="bg-white rounded-2xl p-4 sm:p-6 elevate">
+    <section class="bg-white rounded-2xl p-3 sm:p-6 elevate">
       <div class="flex flex-col sm:flex-row gap-3 sm:items-center justify-between mb-4">
         <h3 class="text-lg font-semibold">ตารางรายการจอง</h3>
         <div class="flex items-center gap-2">
@@ -112,10 +112,9 @@
       </div>
 
       <div class="overflow-x-auto">
-        <table class="min-w-full text-sm">
+        <table class="min-w-full text-xs sm:text-sm">
           <thead>
             <tr class="text-left border-b border-slate-200">
-              <th class="py-2 pr-3 font-medium text-slate-600 sortable" data-key="room">ห้อง <span class="mi sort-icon align-middle">unfold_more</span></th>
               <th class="py-2 px-3 font-medium text-slate-600 sortable" data-key="date">วันที่ <span class="mi sort-icon align-middle">unfold_more</span></th>
               <th class="py-2 px-3 font-medium text-slate-600 sortable" data-key="time">ช่วงเวลาเริ่มต้น - สิ้นสุด <span class="mi sort-icon align-middle">unfold_more</span></th>
               <th class="py-2 px-3 font-medium text-slate-600 sortable" data-key="title">หัวข้อเรื่องประชุม <span class="mi sort-icon align-middle">unfold_more</span></th>
@@ -128,7 +127,7 @@
         </table>
       </div>
 
-      <div class="flex items-center justify-between mt-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-4">
         <div id="tableInfo" class="text-sm text-slate-600"></div>
         <div class="flex items-center gap-1">
           <button id="firstPageBtn" class="rounded-lg border border-slate-200 px-3 py-1.5 hover:bg-slate-50"><span class="mi">first_page</span></button>
@@ -140,6 +139,13 @@
       </div>
     </section>
   </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-200 bg-white">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 py-4 text-center text-xs sm:text-sm text-slate-600">
+      พัฒนาโดย ส่วนส่งเสริมและพัฒนานักศึกษา
+    </div>
+  </footer>
 
   <!-- Day detail modal -->
   <div id="dayModal" class="modal-backdrop">
@@ -180,9 +186,6 @@
             <label for="dateInput" class="text-sm text-slate-700">เลือกวันที่<span class="text-red-500">*</span></label>
             <input id="dateInput" type="date" class="w-full rounded-lg border border-slate-300 px-3 py-2" required />
             <p id="dateHelp" class="text-xs text-slate-500">เมื่อเลือกวันที่ ระบบจะแสดงรายการที่ถูกจองแล้ว และจำกัดช่วงเวลาที่เลือกได้</p>
-            <div class="text-sm text-slate-700 mt-1">
-              รูปแบบวันที่ (dd/mm/yy): <span id="datePreview" class="font-semibold text-indigo-700">—</span>
-            </div>
           </div>
 
           <div class="space-y-1">
@@ -234,7 +237,7 @@
           <div class="sm:col-span-2">
             <div class="rounded-xl border border-slate-200 p-3 bg-slate-50">
               <div class="flex items-center gap-2 text-slate-700 text-sm font-medium mb-2"><span class="mi">info</span> รายการที่ถูกจองแล้วในวันเลือก</div>
-              <ul id="bookedList" class="text-sm space-y-1 text-slate-700">
+              <ul id="bookedList" class="text-xs sm:text-sm space-y-1 text-slate-700">
                 <li class="text-slate-500">— ยังไม่มีข้อมูล —</li>
               </ul>
             </div>
@@ -268,11 +271,11 @@
         <div id="adminFields" class="grid grid-cols-1 gap-3 mt-4">
           <div>
             <label class="text-sm text-slate-700">ผู้ใช้</label>
-            <input id="adminUser" type="text" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="เช่น dssdwu" />
+            <input id="adminUser" type="text" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="User" />
           </div>
           <div>
             <label class="text-sm text-slate-700">รหัสผ่าน</label>
-            <input id="adminPass" type="password" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="เช่น dssd2566" />
+            <input id="adminPass" type="password" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Password" />
           </div>
         </div>
         <div class="mt-5 flex items-center justify-end gap-2">
@@ -309,6 +312,7 @@
   const STEP = 30;
 
   let currentEditingId = null; // null = create, id = edit
+  let currentYear, currentMonth; // calendar state
 
   function minutesToHHMM(total){
     const h = Math.floor(total/60).toString().padStart(2,"0");
@@ -330,11 +334,6 @@
   function fmtDateTh(dStr){
     const [y,m,d] = dStr.split("-").map(Number);
     return `${d.toString().padStart(2,"0")}/${m.toString().padStart(2,"0")}/${y}`;
-  }
-  function fmtDateDDMMYY(dStr){
-    const [y,m,d] = dStr.split("-").map(Number);
-    const yy = (y % 100).toString().padStart(2,"0");
-    return `${d.toString().padStart(2,"0")}/${m.toString().padStart(2,"0")}/${yy}`;
   }
   function todayYMD(){
     const d = new Date();
@@ -360,14 +359,12 @@
   function validateBooking(bk, ignoreId=null){
     const list = loadBookings();
 
-    // Rule 1: forbid exact same start-end on same date for same room (excluding ignoreId if editing)
     const dupSamePair = list.some(x =>
       x.id !== ignoreId &&
       x.room===bk.room && x.date===bk.date && x.start===bk.start && x.end===bk.end
     );
     if(dupSamePair) throw new Error("มีการจองช่วงเวลาเดียวกันในวันนี้อยู่แล้ว");
 
-    // Rule 2: forbid ANY overlapping interval (excluding ignoreId)
     const sIdx = timeToIndex(bk.start);
     const eIdx = timeToIndex(bk.end);
     if(sIdx>=eIdx) throw new Error("ช่วงเวลาไม่ถูกต้อง");
@@ -403,8 +400,6 @@
   }
 
   // ======= Calendar =======
-  let currentYear, currentMonth; // 0-based month
-
   function renderCalendar(){
     const cal = document.getElementById("calendarGrid");
     cal.innerHTML = "";
@@ -418,7 +413,7 @@
 
     for(let i=0;i<firstDay;i++){
       const div = document.createElement("div");
-      div.className = "rounded-xl border border-dashed border-slate-200/60 h-28 bg-slate-50/40";
+      div.className = "rounded-xl border border-dashed border-slate-200/60 h-20 sm:h-24 md:h-28 bg-slate-50/40";
       cal.appendChild(div);
     }
 
@@ -430,8 +425,8 @@
       const has = daily.length>0;
 
       const card = document.createElement("button");
-      card.className = "text-left rounded-xl border h-28 p-2 flex flex-col justify-between hover:border-indigo-300 transition bg-white";
-      card.classList.add(has ? "border-indigo-200" : "border-slate-200");
+      card.className = "text-left rounded-xl border h-20 sm:h-24 md:h-28 p-2 flex flex-col justify-between hover:border-indigo-300 transition bg-white";
+      card.classList.add(has ? "border-red-200" : "border-green-200");
 
       const top = document.createElement("div");
       top.className = "flex items-center justify-between";
@@ -451,7 +446,7 @@
       list.className = "space-y-1";
       daily.slice(0,3).forEach(bk=>{
         const it = document.createElement("div");
-        it.className = "text-[11px] px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 truncate";
+        it.className = "text-[11px] px-2 py-1 rounded-md bg-red-50 text-red-700 border border-red-100 truncate";
         it.textContent = `${bk.start}-${bk.end} • ${bk.title}`;
         list.appendChild(it);
       });
@@ -466,7 +461,7 @@
       card.appendChild(list);
 
       const dot = document.createElement("span");
-      dot.className = `w-2 h-2 rounded-full ${has? "bg-indigo-500":"bg-slate-300"}`;
+      dot.className = `w-2 h-2 rounded-full ${has? "bg-red-500":"bg-green-500"}`;
       card.appendChild(dot);
 
       card.addEventListener("click", ()=> openDayModal(ymd));
@@ -538,7 +533,6 @@
 
     populateTimeSelects();
     updateBookedListAndDisable(dateEl.value, null);
-    updateDatePreview();
 
     document.getElementById("bookerSel").value = "";
     document.getElementById("titleInput").value = "";
@@ -558,14 +552,13 @@
 
     document.getElementById("dateInput").value = bk.date;
     populateTimeSelects();
-    updateBookedListAndDisable(bk.date, id); // ignore self when disabling
+    updateBookedListAndDisable(bk.date, id);
     document.getElementById("startSel").value = bk.start;
     updateEndOptions(id);
     document.getElementById("endSel").value = bk.end;
     document.getElementById("bookerSel").value = bk.booker;
     document.getElementById("titleInput").value = bk.title;
     document.getElementById("attInput").value = bk.attendees;
-    updateDatePreview();
 
     showBackdrop("createModal", true);
   }
@@ -674,11 +667,6 @@
     document.getElementById("timeHelp").textContent = endHelp;
   }
 
-  function updateDatePreview(){
-    const v = document.getElementById("dateInput").value;
-    document.getElementById("datePreview").textContent = v ? fmtDateDDMMYY(v) : "—";
-  }
-
   // ======= Table (Sort + Pagination) =======
   let sortKey = "date";
   let sortDir = "asc";
@@ -724,7 +712,7 @@
 
     tbody.innerHTML = "";
     if(rows.length===0){
-      tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-slate-500">— ไม่มีข้อมูล —</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" class="py-6 text-center text-slate-500">— ไม่มีข้อมูล —</td></tr>`;
     }else{
       rows.forEach(bk=>{
         const tr = document.createElement("tr");
@@ -738,10 +726,9 @@
               <span class="mi">delete</span>
             </button>
           `
-          : `<span class="inline-flex items-center gap-1 text-slate-400"><span class="mi">lock</span> ไม่มีสิทธิ์</span>`;
+          : `<span class="inline-flex items-center gap-1 text-slate-400"><span class="mi">lock</span> เฉพาะ Admin</span>`;
 
         tr.innerHTML = `
-          <td class="py-2 pr-3">${bk.room}</td>
           <td class="py-2 px-3">${fmtDateTh(bk.date)}</td>
           <td class="py-2 px-3">${bk.start} - ${bk.end}</td>
           <td class="py-2 px-3">${bk.title}</td>
@@ -915,7 +902,7 @@
     document.getElementById("adminBtn").addEventListener("click", ()=> openAdminModal());
 
     // Date & time interactions
-    document.getElementById("dateInput").addEventListener("change", (e)=> { updateBookedListAndDisable(e.target.value, currentEditingId); updateDatePreview(); });
+    document.getElementById("dateInput").addEventListener("change", (e)=> { updateBookedListAndDisable(e.target.value, currentEditingId); });
     document.getElementById("startSel").addEventListener("change", ()=> updateEndOptions(currentEditingId));
 
     // Sorting
