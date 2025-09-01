@@ -18,47 +18,33 @@
 
   <style>
     :root {
-      --brand: #2563eb; /* indigo-600-ish */
-      --brand-2: #0ea5e9; /* sky-500-ish */
-      --muted: #64748b;   /* slate-500 */
-      --ok: #16a34a;      /* green-600 */
-      --warn: #eab308;    /* yellow-500 */
-      --err: #dc2626;     /* red-600 */
+      --brand: #2563eb;
+      --brand-2: #0ea5e9;
+      --muted: #64748b;
+      --ok: #16a34a;
+      --warn: #eab308;
+      --err: #dc2626;
     }
     html, body { height: 100%; }
     body { font-family: 'Kanit', system-ui, -apple-system, Segoe UI, Roboto, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif; }
 
-    /* Premium card shadow */
     .elevate { box-shadow: 0 10px 25px -10px rgba(2,6,23,.25), 0 8px 16px -8px rgba(2,6,23,.15); }
-
-    /* Material icon helper */
     .mi { font-family: 'Material Symbols Outlined'; font-weight: normal; font-style: normal; font-size: 20px; display: inline-block; line-height: 1; }
-
-    /* Calendar grid */
     .cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .5rem; }
 
-    /* Modal base */
     .modal-backdrop { position: fixed; inset: 0; background: rgba(2,6,23,.55); backdrop-filter: blur(2px); display: none; z-index: 50; }
-    .modal { max-height: 86vh; }
+    .modal { max-height: 86vh; overflow: auto; }
 
-    /* Toast */
     .toast-wrap { position: fixed; right: 1rem; bottom: 1rem; z-index: 60; display: flex; flex-direction: column; gap: .75rem; }
 
-    /* Loading overlay */
     .loading-backdrop { position: fixed; inset: 0; background: rgba(255,255,255,.7); display: none; z-index: 70; align-items: center; justify-content: center; }
-    .spinner {
-      width: 46px; height: 46px; border-radius: 9999px;
-      border: 4px solid rgba(2,6,23,.2); border-top-color: var(--brand);
-      animation: spin 0.9s linear infinite;
-    }
+    .spinner { width: 46px; height: 46px; border-radius: 9999px; border: 4px solid rgba(2,6,23,.2); border-top-color: var(--brand); animation: spin 0.9s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg);} }
 
-    /* Table sort indicator */
     th.sortable { cursor: pointer; user-select: none; }
     th.sortable .sort-icon { opacity: .35; transition: opacity .15s; }
     th.sortable:hover .sort-icon { opacity: .9; }
 
-    /* Custom select disabled look (extra hint besides native disabled) */
     option[disabled] { color: #94a3b8; }
   </style>
 </head>
@@ -70,10 +56,13 @@
         <span class="mi text-white/90 text-3xl">event</span>
         <div>
           <h1 class="text-2xl font-semibold leading-tight">ระบบจอง “ห้องประชุมส่วนส่งเสริมและพัฒนานักศึกษา”</h1>
-          <p class="text-white/85 text-sm">Single Page • localStorage • Modern UI</p>
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <span id="adminBadge" class="hidden rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200 px-3 py-1 text-sm">Admin</span>
+        <button id="adminBtn" class="inline-flex items-center gap-2 rounded-xl bg-white/95 text-slate-800 hover:bg-white px-4 py-2 font-medium elevate">
+          <span class="mi">admin_panel_settings</span> Admin
+        </button>
         <button id="openCreateBtn" class="inline-flex items-center gap-2 rounded-xl bg-white/95 text-slate-800 hover:bg-white px-4 py-2 font-medium elevate">
           <span class="mi">add</span> จองห้อง
         </button>
@@ -174,13 +163,13 @@
     </div>
   </div>
 
-  <!-- Create Booking modal -->
+  <!-- Create / Edit Booking modal -->
   <div id="createModal" class="modal-backdrop">
     <div class="mx-auto w-[95%] max-w-3xl mt-8">
       <form id="createForm" class="bg-white rounded-2xl p-5 elevate modal" onsubmit="handleCreateSubmit(event)">
         <div class="flex items-start justify-between">
           <div>
-            <h4 class="text-lg font-semibold">สร้างการจองห้องประชุม</h4>
+            <h4 id="createModalTitle" class="text-lg font-semibold">สร้างการจองห้องประชุม</h4>
             <p class="text-sm text-slate-500">ห้อง: ห้องประชุมส่วนส่งเสริมและพัฒนานักศึกษา</p>
           </div>
           <button type="button" class="rounded-lg p-2 hover:bg-slate-50" onclick="closeCreateModal()"><span class="mi">close</span></button>
@@ -191,6 +180,9 @@
             <label for="dateInput" class="text-sm text-slate-700">เลือกวันที่<span class="text-red-500">*</span></label>
             <input id="dateInput" type="date" class="w-full rounded-lg border border-slate-300 px-3 py-2" required />
             <p id="dateHelp" class="text-xs text-slate-500">เมื่อเลือกวันที่ ระบบจะแสดงรายการที่ถูกจองแล้ว และจำกัดช่วงเวลาที่เลือกได้</p>
+            <div class="text-sm text-slate-700 mt-1">
+              รูปแบบวันที่ (dd/mm/yy): <span id="datePreview" class="font-semibold text-indigo-700">—</span>
+            </div>
           </div>
 
           <div class="space-y-1">
@@ -251,8 +243,42 @@
 
         <div class="mt-5 flex items-center justify-end gap-2">
           <button type="button" class="rounded-xl border border-slate-200 px-4 py-2 hover:bg-slate-50" onclick="closeCreateModal()">ยกเลิก</button>
-          <button type="submit" class="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 inline-flex items-center gap-2">
-            <span class="mi">save</span> บันทึกการจอง
+          <button id="submitBtn" type="submit" class="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 inline-flex items-center gap-2">
+            <span class="mi">save</span> <span id="submitBtnLabel">บันทึกการจอง</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin login modal -->
+  <div id="adminModal" class="modal-backdrop">
+    <div class="mx-auto w-[95%] max-w-md mt-20">
+      <form id="adminForm" class="bg-white rounded-2xl p-5 elevate modal" onsubmit="handleAdminLogin(event)">
+        <div class="flex items-start justify-between">
+          <div>
+            <h4 class="text-lg font-semibold">เข้าสู่ระบบผู้ดูแล (Admin)</h4>
+            <p class="text-sm text-slate-500">กรุณาใส่ชื่อผู้ใช้และรหัสผ่าน</p>
+          </div>
+          <button type="button" class="rounded-lg p-2 hover:bg-slate-50" onclick="closeAdminModal()"><span class="mi">close</span></button>
+        </div>
+        <div id="adminLoggedBox" class="hidden mt-3 rounded-lg border border-emerald-200 bg-emerald-50 text-emerald-800 px-3 py-2 text-sm">
+          คุณอยู่ในสถานะผู้ดูแลระบบแล้ว
+        </div>
+        <div id="adminFields" class="grid grid-cols-1 gap-3 mt-4">
+          <div>
+            <label class="text-sm text-slate-700">ผู้ใช้</label>
+            <input id="adminUser" type="text" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="เช่น dssdwu" />
+          </div>
+          <div>
+            <label class="text-sm text-slate-700">รหัสผ่าน</label>
+            <input id="adminPass" type="password" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="เช่น dssd2566" />
+          </div>
+        </div>
+        <div class="mt-5 flex items-center justify-end gap-2">
+          <button type="button" id="logoutBtn" class="hidden rounded-xl border border-slate-200 px-4 py-2 hover:bg-slate-50" onclick="doLogout()">ออกจากระบบ</button>
+          <button type="submit" id="loginBtn" class="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 inline-flex items-center gap-2">
+            <span class="mi">login</span> เข้าสู่ระบบ
           </button>
         </div>
       </form>
@@ -274,14 +300,15 @@
   // ======= Constants / Helpers =======
   const ROOM_NAME = "ห้องประชุมส่วนส่งเสริมและพัฒนานักศึกษา";
   const LS_KEY = "wu_room_bookings_v1";
-  const tz = "Asia/Bangkok";
   const dayNames = ["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์","เสาร์"];
   const monthNamesTh = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
 
   // Time range 08:30 - 22:00 step 30 min
-  const START_MINUTES = 8*60 + 30; // 510
-  const END_MINUTES = 22*60 + 0;   // 1320
+  const START_MINUTES = 8*60 + 30;
+  const END_MINUTES = 22*60 + 0;
   const STEP = 30;
+
+  let currentEditingId = null; // null = create, id = edit
 
   function minutesToHHMM(total){
     const h = Math.floor(total/60).toString().padStart(2,"0");
@@ -292,23 +319,22 @@
     const [h,m] = hhmm.split(":").map(Number);
     return h*60 + m;
   }
-  function timePoints(){ // 08:30..22:00 inclusive
+  function timePoints(){
     const pts = [];
     for(let t=START_MINUTES; t<=END_MINUTES; t+=STEP){ pts.push(minutesToHHMM(t)); }
     return pts;
   }
-  // map HH:MM to index where 08:30 is 0
-  function timeToIndex(hhmm){
-    return Math.round((HHMMtoMinutes(hhmm) - START_MINUTES)/STEP);
-  }
-  function indexToTime(idx){
-    return minutesToHHMM(START_MINUTES + idx*STEP);
-  }
+  function timeToIndex(hhmm){ return Math.round((HHMMtoMinutes(hhmm) - START_MINUTES)/STEP); }
+  function indexToTime(idx){ return minutesToHHMM(START_MINUTES + idx*STEP); }
 
   function fmtDateTh(dStr){
-    // YYYY-MM-DD -> DD/MM/YYYY
     const [y,m,d] = dStr.split("-").map(Number);
     return `${d.toString().padStart(2,"0")}/${m.toString().padStart(2,"0")}/${y}`;
+  }
+  function fmtDateDDMMYY(dStr){
+    const [y,m,d] = dStr.split("-").map(Number);
+    const yy = (y % 100).toString().padStart(2,"0");
+    return `${d.toString().padStart(2,"0")}/${m.toString().padStart(2,"0")}/${yy}`;
   }
   function todayYMD(){
     const d = new Date();
@@ -327,41 +353,48 @@
       return Array.isArray(arr) ? arr : [];
     }catch(e){ return []; }
   }
-  function saveBookings(arr){
-    localStorage.setItem(LS_KEY, JSON.stringify(arr));
-  }
+  function saveBookings(arr){ localStorage.setItem(LS_KEY, JSON.stringify(arr)); }
 
-  // Validate overlap: [s,e) intersects [S,E)?
   function isOverlap(sIdx, eIdx, S, E){ return sIdx < E && eIdx > S; }
 
-  function addBooking(bk){
+  function validateBooking(bk, ignoreId=null){
     const list = loadBookings();
 
-    // Rule 1: forbid exact same start-end on same date for same room
-    const existsSamePair = list.some(x => x.room===bk.room && x.date===bk.date && x.start===bk.start && x.end===bk.end);
-    if(existsSamePair){
-      throw new Error("มีการจองช่วงเวลาเดียวกันในวันนี้อยู่แล้ว");
-    }
+    // Rule 1: forbid exact same start-end on same date for same room (excluding ignoreId if editing)
+    const dupSamePair = list.some(x =>
+      x.id !== ignoreId &&
+      x.room===bk.room && x.date===bk.date && x.start===bk.start && x.end===bk.end
+    );
+    if(dupSamePair) throw new Error("มีการจองช่วงเวลาเดียวกันในวันนี้อยู่แล้ว");
 
-    // Rule 2: also forbid ANY overlapping interval on same date for same room (เพื่อกันชนกัน)
+    // Rule 2: forbid ANY overlapping interval (excluding ignoreId)
     const sIdx = timeToIndex(bk.start);
     const eIdx = timeToIndex(bk.end);
-    if(sIdx>=eIdx){ throw new Error("ช่วงเวลาไม่ถูกต้อง"); }
+    if(sIdx>=eIdx) throw new Error("ช่วงเวลาไม่ถูกต้อง");
 
-    const overlap = list.some(x => {
+    const overlap = list.some(x=>{
+      if(x.id===ignoreId) return false;
       if(x.room!==bk.room || x.date!==bk.date) return false;
       const S = timeToIndex(x.start);
       const E = timeToIndex(x.end);
       return isOverlap(sIdx, eIdx, S, E);
     });
-    if(overlap){
-      throw new Error("ช่วงเวลาที่เลือกชนกับรายการจองอื่น");
-    }
+    if(overlap) throw new Error("ช่วงเวลาที่เลือกชนกับรายการจองอื่น");
+  }
 
-    // OK
+  function addBooking(bk){
+    validateBooking(bk, null);
+    const list = loadBookings();
     list.push({...bk, id: crypto.randomUUID()});
     saveBookings(list);
-    return true;
+  }
+  function updateBooking(id, bk){
+    validateBooking(bk, id);
+    const list = loadBookings();
+    const idx = list.findIndex(x => x.id===id);
+    if(idx===-1) throw new Error("ไม่พบบันทึกที่จะปรับปรุง");
+    list[idx] = {...bk, id};
+    saveBookings(list);
   }
   function removeBooking(id){
     const list = loadBookings();
@@ -377,13 +410,12 @@
     cal.innerHTML = "";
 
     const first = new Date(currentYear, currentMonth, 1);
-    const firstDay = first.getDay(); // 0 sun
+    const firstDay = first.getDay();
     const last = new Date(currentYear, currentMonth+1, 0);
     const lastDate = last.getDate();
 
     document.getElementById("monthLabel").textContent = `${monthNamesTh[currentMonth]} ${currentYear}`;
 
-    // blanks
     for(let i=0;i<firstDay;i++){
       const div = document.createElement("div");
       div.className = "rounded-xl border border-dashed border-slate-200/60 h-28 bg-slate-50/40";
@@ -401,7 +433,6 @@
       card.className = "text-left rounded-xl border h-28 p-2 flex flex-col justify-between hover:border-indigo-300 transition bg-white";
       card.classList.add(has ? "border-indigo-200" : "border-slate-200");
 
-      // top row: date + today badge
       const top = document.createElement("div");
       top.className = "flex items-center justify-between";
       const dn = document.createElement("div");
@@ -416,7 +447,6 @@
       top.appendChild(dn);
       top.appendChild(bdg);
 
-      // list (max 3)
       const list = document.createElement("div");
       list.className = "space-y-1";
       daily.slice(0,3).forEach(bk=>{
@@ -435,7 +465,6 @@
       card.appendChild(top);
       card.appendChild(list);
 
-      // dot color
       const dot = document.createElement("span");
       dot.className = `w-2 h-2 rounded-full ${has? "bg-indigo-500":"bg-slate-300"}`;
       card.appendChild(dot);
@@ -469,13 +498,21 @@
             <div class="font-medium">${bk.start} - ${bk.end} • ${bk.title}</div>
             <div class="text-slate-600">ผู้จอง: ${bk.booker} • จำนวน ${bk.attendees} คน</div>
           </div>
-          <button class="rounded-lg p-2 hover:bg-slate-50" title="ลบรายการ" data-id="${bk.id}">
-            <span class="mi text-red-600">delete</span>
-          </button>
+          <div class="flex items-center gap-1" data-id="${bk.id}">
+            ${isAdmin() ? `
+              <button class="rounded-lg p-2 hover:bg-slate-50" title="แก้ไข"><span class="mi text-amber-600">edit</span></button>
+              <button class="rounded-lg p-2 hover:bg-slate-50" title="ลบ"><span class="mi text-red-600">delete</span></button>
+            ` : ``}
+          </div>
         `;
-        row.querySelector("button").addEventListener("click", ()=>{
-          confirmDelete(bk.id, ()=>{ openDayModal(ymd); refreshAll(); });
-        });
+        if(isAdmin()){
+          const btns = row.querySelector('[data-id]');
+          const id = bk.id;
+          btns.children[0].addEventListener("click", ()=> { openEditModal(id); closeDayModal(); });
+          btns.children[1].addEventListener("click", ()=>{
+            confirmDelete(id, ()=>{ openDayModal(ymd); refreshAll(); });
+          });
+        }
         body.appendChild(row);
       });
     }
@@ -490,18 +527,49 @@
   }
   function closeDayModal(){ showBackdrop("dayModal", false); }
 
-  // ======= Create Modal / Time Logic =======
+  // ======= Create/Edit Modal & Time Logic =======
   function openCreateModal(prefillYMD=null){
+    currentEditingId = null;
+    document.getElementById("createModalTitle").textContent = "สร้างการจองห้องประชุม";
+    document.getElementById("submitBtnLabel").textContent = "บันทึกการจอง";
+
     const dateEl = document.getElementById("dateInput");
     dateEl.value = prefillYMD || todayYMD();
 
-    // Prepare selects
     populateTimeSelects();
-    // Load booked list for the date
-    updateBookedListAndDisable(dateEl.value);
+    updateBookedListAndDisable(dateEl.value, null);
+    updateDatePreview();
+
+    document.getElementById("bookerSel").value = "";
+    document.getElementById("titleInput").value = "";
+    document.getElementById("attInput").value = "";
 
     showBackdrop("createModal", true);
   }
+
+  function openEditModal(id){
+    const list = loadBookings();
+    const bk = list.find(x=>x.id===id);
+    if(!bk){ showToast("ไม่พบรายการที่ต้องการแก้ไข","err"); return; }
+    currentEditingId = id;
+
+    document.getElementById("createModalTitle").textContent = "แก้ไขการจองห้องประชุม";
+    document.getElementById("submitBtnLabel").textContent = "บันทึกการเปลี่ยนแปลง";
+
+    document.getElementById("dateInput").value = bk.date;
+    populateTimeSelects();
+    updateBookedListAndDisable(bk.date, id); // ignore self when disabling
+    document.getElementById("startSel").value = bk.start;
+    updateEndOptions(id);
+    document.getElementById("endSel").value = bk.end;
+    document.getElementById("bookerSel").value = bk.booker;
+    document.getElementById("titleInput").value = bk.title;
+    document.getElementById("attInput").value = bk.attendees;
+    updateDatePreview();
+
+    showBackdrop("createModal", true);
+  }
+
   function closeCreateModal(){ showBackdrop("createModal", false); }
 
   function populateTimeSelects(){
@@ -511,27 +579,27 @@
     startSel.innerHTML = `<option value="" selected disabled>— เลือกเวลาเริ่มต้น —</option>`;
     endSel.innerHTML = `<option value="" selected disabled>— เลือกเวลาสิ้นสุด —</option>`;
 
-    // Start: all points except last (22:00)
     for(let i=0;i<pts.length-1;i++){
       const opt = document.createElement("option");
       opt.value = pts[i];
       opt.textContent = pts[i];
       startSel.appendChild(opt);
     }
-    // End: all points except first (08:30)
     for(let i=1;i<pts.length;i++){
       const opt = document.createElement("option");
       opt.value = pts[i];
       opt.textContent = pts[i];
       endSel.appendChild(opt);
     }
-
-    // Reset help
     document.getElementById("timeHelp").textContent = "";
   }
 
-  function updateBookedListAndDisable(ymd){
-    const list = loadBookings().filter(x => x.date===ymd).sort((a,b)=> timeToIndex(a.start)-timeToIndex(b.start));
+  function updateBookedListAndDisable(ymd, ignoreId=null){
+    const list = loadBookings()
+      .filter(x => x.date===ymd)
+      .filter(x => x.id !== ignoreId)
+      .sort((a,b)=> timeToIndex(a.start)-timeToIndex(b.start));
+
     const ul = document.getElementById("bookedList");
     ul.innerHTML = "";
     if(list.length===0){
@@ -544,7 +612,6 @@
       });
     }
 
-    // Disable illegal START options (inside any booked block)
     const blocked = new Set();
     list.forEach(x=>{
       const s = timeToIndex(x.start), e = timeToIndex(x.end);
@@ -558,20 +625,17 @@
       opt.disabled = blocked.has(idx);
     });
 
-    // When date changes, reset selections
     document.getElementById("startSel").value = "";
     document.getElementById("endSel").value = "";
-    // And update End availability accordingly
-    updateEndOptions();
+    updateEndOptions(ignoreId);
   }
 
-  function updateEndOptions(){
+  function updateEndOptions(ignoreId=null){
     const startVal = document.getElementById("startSel").value;
     const endSel = document.getElementById("endSel");
     const dateVal = document.getElementById("dateInput").value;
-    const daily = loadBookings().filter(x => x.date===dateVal);
+    const daily = loadBookings().filter(x => x.date===dateVal && x.id !== ignoreId);
 
-    // reset all
     [...endSel.options].forEach(opt=>{
       if(!opt.value) return;
       opt.disabled = false;
@@ -584,25 +648,21 @@
     }
     const sIdx = timeToIndex(startVal);
 
-    // find first blocked index >= sIdx
     let firstBlocked = Infinity;
     daily.forEach(x=>{
       const S = timeToIndex(x.start), E = timeToIndex(x.end);
-      if(E<=sIdx) return; // booking ends before start
+      if(E<=sIdx) return;
       if(S<=sIdx && E> sIdx){
-        // start lies inside a booking (shouldn't happen because start is disabled), just lock
         firstBlocked = Math.min(firstBlocked, E);
       }else if(S> sIdx){
         firstBlocked = Math.min(firstBlocked, S);
       }
     });
 
-    const maxEndIdx = (isFinite(firstBlocked) ? firstBlocked : (timePoints().length-0)); // up to last point
-    // Disable any end <= sIdx or > maxEndIdx
+    const maxEndIdx = (isFinite(firstBlocked) ? firstBlocked : (timePoints().length-0));
     [...endSel.options].forEach(opt=>{
       if(!opt.value) return;
       const eIdx = timeToIndex(opt.value);
-      // End must be strictly greater than start and <= maxEndIdx
       const dis = (eIdx <= sIdx) || (eIdx > maxEndIdx);
       opt.disabled = dis;
       opt.hidden = dis;
@@ -614,8 +674,13 @@
     document.getElementById("timeHelp").textContent = endHelp;
   }
 
+  function updateDatePreview(){
+    const v = document.getElementById("dateInput").value;
+    document.getElementById("datePreview").textContent = v ? fmtDateDDMMYY(v) : "—";
+  }
+
   // ======= Table (Sort + Pagination) =======
-  let sortKey = "date"; // 'room','date','time','title','attendees','booker'
+  let sortKey = "date";
   let sortDir = "asc";
   let page = 1;
   let pageSize = 10;
@@ -628,7 +693,6 @@
         va = timeToIndex(a.start);
         vb = timeToIndex(b.start);
         if(a.date!==b.date){
-          // primary sort by date
           return (a.date < b.date ? -1: 1) * (sortDir==="asc"?1:-1);
         }
       }else if(sortKey==="attendees"){
@@ -641,7 +705,6 @@
       }
       if(va<vb) return (sortDir==="asc"? -1: 1);
       if(va>vb) return (sortDir==="asc"? 1: -1);
-      // tie-break by start time then title
       const ti = timeToIndex(a.start) - timeToIndex(b.start);
       if(ti!==0) return ti*(sortDir==="asc"?1:-1);
       return (a.title||"").localeCompare(b.title||"")*(sortDir==="asc"?1:-1);
@@ -666,6 +729,17 @@
       rows.forEach(bk=>{
         const tr = document.createElement("tr");
         tr.className = "border-b border-slate-100 hover:bg-slate-50";
+        const manageCell = isAdmin()
+          ? `
+            <button class="rounded-lg p-2 hover:bg-slate-100 text-amber-600" title="แก้ไข" data-action="edit" data-id="${bk.id}">
+              <span class="mi">edit</span>
+            </button>
+            <button class="rounded-lg p-2 hover:bg-slate-100 text-red-600" title="ลบ" data-action="del" data-id="${bk.id}">
+              <span class="mi">delete</span>
+            </button>
+          `
+          : `<span class="inline-flex items-center gap-1 text-slate-400"><span class="mi">lock</span> ไม่มีสิทธิ์</span>`;
+
         tr.innerHTML = `
           <td class="py-2 pr-3">${bk.room}</td>
           <td class="py-2 px-3">${fmtDateTh(bk.date)}</td>
@@ -673,15 +747,19 @@
           <td class="py-2 px-3">${bk.title}</td>
           <td class="py-2 px-3">${bk.attendees}</td>
           <td class="py-2 px-3">${bk.booker}</td>
-          <td class="py-2 pl-3">
-            <button class="rounded-lg p-2 hover:bg-slate-100 text-red-600" title="ลบ" data-id="${bk.id}">
-              <span class="mi">delete</span>
-            </button>
-          </td>
+          <td class="py-2 pl-3">${manageCell}</td>
         `;
-        tr.querySelector("button").addEventListener("click", ()=>{
-          confirmDelete(bk.id, ()=>{ renderTable(); renderCalendar(); showToast("ลบรายการแล้ว","ok"); });
-        });
+        if(isAdmin()){
+          tr.querySelectorAll("button[data-action]").forEach(btn=>{
+            const id = btn.getAttribute("data-id");
+            const act = btn.getAttribute("data-action");
+            if(act==="del"){
+              btn.addEventListener("click", ()=> confirmDelete(id, ()=>{ renderTable(); renderCalendar(); showToast("ลบรายการแล้ว","ok"); }));
+            }else if(act==="edit"){
+              btn.addEventListener("click", ()=> openEditModal(id));
+            }
+          });
+        }
         tbody.appendChild(tr);
       });
     }
@@ -703,6 +781,43 @@
     renderTable();
   }
 
+  // ======= Admin =======
+  function isAdmin(){ return sessionStorage.getItem("isAdmin")==="1"; }
+  function setAdmin(flag){
+    sessionStorage.setItem("isAdmin", flag ? "1":"0");
+    updateAdminUI();
+    refreshAll();
+  }
+  function updateAdminUI(){
+    document.getElementById("adminBadge").classList.toggle("hidden", !isAdmin());
+  }
+
+  function openAdminModal(){
+    const logged = isAdmin();
+    showBackdrop("adminModal", true);
+    document.getElementById("adminLoggedBox").classList.toggle("hidden", !logged);
+    document.getElementById("adminFields").classList.toggle("hidden", logged);
+    document.getElementById("logoutBtn").classList.toggle("hidden", !logged);
+  }
+  function closeAdminModal(){ showBackdrop("adminModal", false); }
+  function handleAdminLogin(e){
+    e.preventDefault();
+    const u = (document.getElementById("adminUser").value || "").trim();
+    const p = (document.getElementById("adminPass").value || "").trim();
+    if(u==="dssdwu" && p==="dssd2566"){
+      setAdmin(true);
+      showToast("เข้าสู่ระบบผู้ดูแลสำเร็จ","ok");
+      closeAdminModal();
+    }else{
+      showToast("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง","err");
+    }
+  }
+  function doLogout(){
+    setAdmin(false);
+    showToast("ออกจากระบบแล้ว","ok");
+    closeAdminModal();
+  }
+
   // ======= UI Utilities =======
   function showBackdrop(id, show){
     const el = document.getElementById(id);
@@ -722,14 +837,14 @@
   function showLoading(show){
     document.getElementById("loading").style.display = show? "flex":"none";
   }
-
   function confirmDelete(id, after){
+    if(!isAdmin()){ showToast("ต้องเป็นผู้ดูแลระบบจึงจะลบได้","err"); return; }
     if(!confirm("ยืนยันการลบรายการนี้?")) return;
     removeBooking(id);
     after && after();
   }
 
-  // ======= Event Handlers =======
+  // ======= Form Submit =======
   function handleCreateSubmit(e){
     e.preventDefault();
     const date = document.getElementById("dateInput").value;
@@ -749,14 +864,18 @@
     const booking = { room: ROOM_NAME, date, start, end, title, attendees, booker };
     try{
       showLoading(true);
-      // simulate small delay
       setTimeout(()=>{
-        addBooking(booking);
+        if(currentEditingId){
+          updateBooking(currentEditingId, booking);
+          showToast("บันทึกการเปลี่ยนแปลงแล้ว","ok");
+        }else{
+          addBooking(booking);
+          showToast("บันทึกการจองสำเร็จ","ok");
+        }
         showLoading(false);
-        showToast("บันทึกการจองสำเร็จ","ok");
         closeCreateModal();
         refreshAll();
-      }, 450);
+      }, 400);
     }catch(err){
       showLoading(false);
       showToast(err.message || "ไม่สามารถบันทึกได้","err");
@@ -770,12 +889,11 @@
   }
 
   document.addEventListener("DOMContentLoaded", ()=>{
-    // Calendar init to today month
     const now = new Date();
     currentYear = now.getFullYear();
     currentMonth = now.getMonth();
 
-    // Render
+    updateAdminUI();
     refreshAll();
 
     // Calendar controls
@@ -792,15 +910,15 @@
       renderCalendar();
     });
 
-    // Create modal open
+    // Open modals
     document.getElementById("openCreateBtn").addEventListener("click", ()=> openCreateModal());
+    document.getElementById("adminBtn").addEventListener("click", ()=> openAdminModal());
 
-    // Date change in create modal
-    document.getElementById("dateInput").addEventListener("change", (e)=> updateBookedListAndDisable(e.target.value));
-    // Start change => update end options
-    document.getElementById("startSel").addEventListener("change", updateEndOptions);
+    // Date & time interactions
+    document.getElementById("dateInput").addEventListener("change", (e)=> { updateBookedListAndDisable(e.target.value, currentEditingId); updateDatePreview(); });
+    document.getElementById("startSel").addEventListener("change", ()=> updateEndOptions(currentEditingId));
 
-    // Table sort
+    // Sorting
     document.querySelectorAll("th.sortable").forEach(th=>{
       th.addEventListener("click", ()=> setSort(th.dataset.key));
     });
@@ -820,6 +938,9 @@
       const total = getSortedBookings().length;
       page = Math.max(1, Math.ceil(total/pageSize)); renderTable();
     });
+
+    // Admin form
+    document.getElementById("adminForm").addEventListener("submit", handleAdminLogin);
   });
   </script>
 </body>
