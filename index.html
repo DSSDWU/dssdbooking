@@ -81,10 +81,11 @@
           <button id="nextMonthBtn" class="rounded-lg border border-slate-200 px-3 py-2 hover:bg-slate-50"><span class="mi">chevron_right</span></button>
         </div>
         <h2 id="monthLabel" class="text-lg sm:text-xl font-semibold text-slate-900"></h2>
-        <div class="flex items-center gap-3 text-xs sm:text-sm text-slate-600">
-          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span>มีการจอง</span>
-          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span>ว่าง</span>
-        </div>
+    <div class="flex items-center gap-3 text-xs sm:text-sm text-slate-600">
+  <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-indigo-500"></span>มีการจอง</span>
+  <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-300"></span>ว่าง</span>
+</div>
+
       </div>
 
       <!-- Weekday header -->
@@ -460,9 +461,10 @@
       card.appendChild(top);
       card.appendChild(list);
 
-      const dot = document.createElement("span");
-      dot.className = `w-2 h-2 rounded-full ${has? "bg-red-500":"bg-green-500"}`;
-      card.appendChild(dot);
+    const dot = document.createElement("span");
+    dot.className = `w-2 h-2 rounded-full ${has? "bg-indigo-500":"bg-slate-300"}`;
+    card.appendChild(dot);
+
 
       card.addEventListener("click", ()=> openDayModal(ymd));
       cal.appendChild(card);
