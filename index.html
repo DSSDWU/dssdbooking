@@ -305,7 +305,7 @@
 
   <script>
   /************ CONFIG: ใส่ URL ของ Web App จาก Apps Script ************/
-  const API_URL = 'https://script.google.com/macros/s/AKfycbxg8RqH6jDNHd9QHk4l5xmM5q8XGuJRR8fASRG6EyHB1JG3fjZfJf6VwTk7NxWB7QEvTg/exec'; // <-- เปลี่ยนตรงนี้เป็น URL ของคุณ
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxg8RqH6jDNHd9QHk4l5xmM5q8XGuJRR8fASRG6EyHB1JG3fjZfJf6VwTk7NxWB7QEvTg/exec';
 
   /************ Global State ************/
   const ROOM_NAME = "ห้องประชุมส่วนส่งเสริมและพัฒนานักศึกษา";
@@ -356,28 +356,48 @@
     if(!j.ok) throw new Error(j.error||"list_failed");
     return j.rows || [];
   }
+
+  // --- ใช้ form-urlencoded เพื่อเลี่ยง preflight/CORS ---
+  function toForm(bodyObj){ return 'payload=' + encodeURIComponent(JSON.stringify(bodyObj)); }
+
   async function apiCreateSingle(bk){
-    const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'create', ...bk}) });
+    const res = await fetch(API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body: toForm({action:'create', ...bk})
+    });
     const j = await res.json();
-    if(!j.ok) throw new Error(j.error||"create_failed");
+    if(!j.ok) throw j;
     return j;
   }
   async function apiCreateRange(rangePayload){
-    const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'create_range', ...rangePayload}) });
+    const res = await fetch(API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body: toForm({action:'create_range', ...rangePayload})
+    });
     const j = await res.json();
-    if(!j.ok) throw j; // ให้ฝั่ง UI ตรวจ j.error === 'conflicts'
+    if(!j.ok) throw j; // {error:'conflicts', conflicts:[...]}
     return j;
   }
   async function apiUpdate(id, bk){
-    const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'update', id, ...bk}) });
+    const res = await fetch(API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body: toForm({action:'update', id, ...bk})
+    });
     const j = await res.json();
-    if(!j.ok) throw new Error(j.error||"update_failed");
+    if(!j.ok) throw j;
     return j;
   }
   async function apiDelete(id){
-    const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'delete', id}) });
+    const res = await fetch(API_URL, {
+      method:'POST',
+      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+      body: toForm({action:'delete', id})
+    });
     const j = await res.json();
-    if(!j.ok) throw new Error(j.error||"delete_failed");
+    if(!j.ok) throw j;
     return j;
   }
 
@@ -590,7 +610,7 @@
       ul.appendChild(li);
     });
 
-    // Disable start options that lie inside booked blocks for that day (client-side hint only)
+    // บล็อกตัวเลือกเวลาเริ่มที่ชน (ในวันเริ่มต้น)
     const blocked = new Set();
     list.forEach(x=>{
       const s = timeToIndex(x.start), e = timeToIndex(x.end);
@@ -757,18 +777,11 @@
     try{
       showLoading(true);
       if(currentEditingId){
-        // แก้ไขเฉพาะรายการเดี่ยว
         await apiUpdate(currentEditingId, { room: ROOM_NAME, date: startDate, start, end, title, attendees, booker });
         showToast("บันทึกการเปลี่ยนแปลงแล้ว","ok");
       }else{
-        // สร้าง: ถ้าเลือกหลายวัน ให้ใช้ create_range (all-or-nothing)
         if (endDate !== startDate) {
           const res = await apiCreateRange({ room: ROOM_NAME, startDate, endDate, start, end, title, attendees, booker });
-          if(!res.ok && res.error==='conflicts'){
-            // ไม่ควรมาถึงนี่เพราะ throw แล้ว แต่กันไว้
-            const dates = (res.conflicts||[]).map(c=>fmtDateTh(c.date)).join(", ");
-            throw new Error("ชนเวลาในวัน: "+dates);
-          }
           showToast(`บันทึกการจองสำเร็จ (${res.days.length} วัน)`, "ok");
         } else {
           await apiCreateSingle({ room: ROOM_NAME, date: startDate, start, end, title, attendees, booker });
@@ -778,7 +791,6 @@
       closeCreateModal();
       await reloadAndRefresh();
     }catch(err){
-      // กรณี API ส่ง {ok:false, error:'conflicts', conflicts:[{date,type},...]}
       if (err && err.error === 'conflicts' && Array.isArray(err.conflicts)) {
         const dates = err.conflicts.map(c=>fmtDateTh(c.date)).join(", ");
         showToast(`ช่วงเวลาชนหรือซ้ำในวัน: ${dates}`,"err");
@@ -806,6 +818,7 @@
     try{
       await reloadAndRefresh();
     }catch(e){
+      console.error('API error', e);
       showToast("ดึงข้อมูลไม่สำเร็จ ตรวจ API_URL","err");
     }finally{
       showLoading(false);
