@@ -277,11 +277,11 @@
         <div id="adminFields" class="grid grid-cols-1 gap-3 mt-4">
           <div>
             <label class="text-sm text-slate-700">ผู้ใช้</label>
-            <input id="adminUser" type="text" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="เช่น dssdwu" />
+            <input id="adminUser" type="text" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="User" />
           </div>
           <div>
             <label class="text-sm text-slate-700">รหัสผ่าน</label>
-            <input id="adminPass" type="password" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="เช่น dssd2566" />
+            <input id="adminPass" type="password" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Password" />
           </div>
         </div>
         <div class="mt-5 flex items-center justify-end gap-2">
@@ -448,7 +448,7 @@ function fmtDateTh(dStr){
     e.preventDefault();
     const u = (document.getElementById("adminUser").value||"").trim();
     const p = (document.getElementById("adminPass").value||"").trim();
-    if(u==="dssdwu" && p==="dssd2566"){ setAdmin(true); showToast("เข้าสู่ระบบผู้ดูแลสำเร็จ","ok"); closeAdminModal(); }
+    if(u==="dssd" && p==="dssd2566"){ setAdmin(true); showToast("เข้าสู่ระบบผู้ดูแลสำเร็จ","ok"); closeAdminModal(); }
     else { showToast("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง","err"); }
   }
   function doLogout(){ setAdmin(false); showToast("ออกจากระบบแล้ว","ok"); closeAdminModal(); }
