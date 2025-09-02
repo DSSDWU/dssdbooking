@@ -357,46 +357,53 @@
     return j.rows || [];
   }
 
-  // --- ใช้ form-urlencoded เพื่อเลี่ยง preflight/CORS ---
+  // helper form-urlencoded (POST)
   function toForm(bodyObj){ return 'payload=' + encodeURIComponent(JSON.stringify(bodyObj)); }
 
-  async function apiCreateSingle(bk){
-    const res = await fetch(API_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-      body: toForm({action:'create', ...bk})
-    });
+  // helper GET fallback (action + payload + ts)
+  async function apiGET(action, payload){
+    const url = new URL(API_URL);
+    url.searchParams.set('action', action);
+    url.searchParams.set('payload', JSON.stringify(payload));
+    url.searchParams.set('ts', Date.now().toString()); // กัน cache
+    const res = await fetch(url.toString());
     const j = await res.json();
+    return j;
+  }
+
+  // wrapper: พยายาม POST ก่อน ถ้าล้มเหลว (เครือข่าย/CORS) จะ fallback เป็น GET
+  async function tryPostThenGet(action, payload){
+    try {
+      const res = await fetch(API_URL, {
+        method:'POST',
+        headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
+        body: toForm({action, ...payload})
+      });
+      const j = await res.json();
+      return j;
+    } catch (e) {
+      // POST ถูก browser บล็อก (Failed to fetch) → ลอง GET
+      return await apiGET(action, payload);
+    }
+  }
+
+  async function apiCreateSingle(bk){
+    const j = await tryPostThenGet('create', bk);
     if(!j.ok) throw j;
     return j;
   }
   async function apiCreateRange(rangePayload){
-    const res = await fetch(API_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-      body: toForm({action:'create_range', ...rangePayload})
-    });
-    const j = await res.json();
+    const j = await tryPostThenGet('create_range', rangePayload);
     if(!j.ok) throw j; // {error:'conflicts', conflicts:[...]}
     return j;
   }
   async function apiUpdate(id, bk){
-    const res = await fetch(API_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-      body: toForm({action:'update', id, ...bk})
-    });
-    const j = await res.json();
+    const j = await tryPostThenGet('update', {id, ...bk});
     if(!j.ok) throw j;
     return j;
   }
   async function apiDelete(id){
-    const res = await fetch(API_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
-      body: toForm({action:'delete', id})
-    });
-    const j = await res.json();
+    const j = await tryPostThenGet('delete', {id});
     if(!j.ok) throw j;
     return j;
   }
@@ -795,7 +802,7 @@
         const dates = err.conflicts.map(c=>fmtDateTh(c.date)).join(", ");
         showToast(`ช่วงเวลาชนหรือซ้ำในวัน: ${dates}`,"err");
       } else {
-        showToast(err.message || "ไม่สามารถบันทึกได้","err");
+        showToast((err && err.message) || "ไม่สามารถบันทึกได้","err");
       }
     }finally{
       showLoading(false);
@@ -835,7 +842,7 @@
 
     // Date & time interactions
     document.getElementById("startDateInput").addEventListener("change", (e)=> updateBookedList(e.target.value));
-    document.getElementById("endDateInput").addEventListener("change", ()=> {/* ใช้ตรวจช่วงก่อน submit */});
+    document.getElementById("endDateInput").addEventListener("change", ()=> {/* ตรวจช่วงก่อน submit */});
     document.getElementById("startSel").addEventListener("change", ()=> updateEndOptions());
 
     // Sorting
