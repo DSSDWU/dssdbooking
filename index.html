@@ -327,9 +327,33 @@
   function timeToIndex(hhmm){ return Math.round((hhmmToMinutes(hhmm)-START_MINUTES)/STEP); }
   function indexToTime(idx){ return minutesToHHMM(START_MINUTES + idx*STEP); }
 
-  function fmtDateTh(dStr){
-    const [y,m,d] = dStr.split("-").map(Number);
-    return `${String(d).padStart(2,"0")}/${String(m).padStart(2,"0")}/${y}`;
+ <script>
+function fmtDateTh(dStr){
+  if (!dStr) return '';
+  let v = String(dStr);
+
+  // กรณี ISO 2025-09-03T...
+  if (/^\d{4}-\d{2}-\d{2}T/.test(v)) v = v.slice(0,10);
+
+  // YYYY-M-D
+  let m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (m) {
+    const y=m[1], mo=('0'+m[2]).slice(-2), d=('0'+m[3]).slice(-2);
+    return `${d}/${mo}/${y}`;
+  }
+
+  // dd/mm/yy(yy)
+  m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (m) {
+    let y = m[3]; if (y.length===2) y = (Number(y)>=70? '19':'20') + y;
+    const d=('0'+m[1]).slice(-2), mo=('0'+m[2]).slice(-2);
+    return `${d}/${mo}/${y}`;
+  }
+
+  return v; // ตกมาเคสอื่นๆ ก็แสดงตามเดิม
+}
+</script>
+
   }
   function todayYMD(){
     const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
