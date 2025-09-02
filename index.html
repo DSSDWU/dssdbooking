@@ -304,7 +304,7 @@
   </div>
 
   <script>
-  /************ CONFIG: ใส่ URL ของ Web App จาก Apps Script ************/
+  /************ CONFIG ************/
   const API_URL = 'https://script.google.com/macros/s/AKfycbxg8RqH6jDNHd9QHk4l5xmM5q8XGuJRR8fASRG6EyHB1JG3fjZfJf6VwTk7NxWB7QEvTg/exec';
 
   /************ Global State ************/
@@ -316,9 +316,9 @@
   const END_MINUTES   = 22*60;
   const STEP = 30;
 
-  let currentEditingId = null; // null=create; id=edit (single record)
+  let currentEditingId = null;
   let currentYear, currentMonth;
-  let bookings = []; // ทั้งหมดจาก API
+  let bookings = [];
 
   /************ Helpers ************/
   function minutesToHHMM(total){ const h=String(Math.floor(total/60)).padStart(2,"0"); const m=String(total%60).padStart(2,"0"); return `${h}:${m}`; }
@@ -327,33 +327,15 @@
   function timeToIndex(hhmm){ return Math.round((hhmmToMinutes(hhmm)-START_MINUTES)/STEP); }
   function indexToTime(idx){ return minutesToHHMM(START_MINUTES + idx*STEP); }
 
- <script>
-function fmtDateTh(dStr){
-  if (!dStr) return '';
-  let v = String(dStr);
-
-  // กรณี ISO 2025-09-03T...
-  if (/^\d{4}-\d{2}-\d{2}T/.test(v)) v = v.slice(0,10);
-
-  // YYYY-M-D
-  let m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
-  if (m) {
-    const y=m[1], mo=('0'+m[2]).slice(-2), d=('0'+m[3]).slice(-2);
-    return `${d}/${mo}/${y}`;
-  }
-
-  // dd/mm/yy(yy)
-  m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
-  if (m) {
-    let y = m[3]; if (y.length===2) y = (Number(y)>=70? '19':'20') + y;
-    const d=('0'+m[1]).slice(-2), mo=('0'+m[2]).slice(-2);
-    return `${d}/${mo}/${y}`;
-  }
-
-  return v; // ตกมาเคสอื่นๆ ก็แสดงตามเดิม
-}
-</script>
-
+  function fmtDateTh(dStr){
+    if (!dStr) return '';
+    let v = String(dStr);
+    if (/^\d{4}-\d{2}-\d{2}T/.test(v)) v = v.slice(0,10);
+    let m = v.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+    if (m) { const y=m[1], mo=('0'+m[2]).slice(-2), d=('0'+m[3]).slice(-2); return `${d}/${mo}/${y}`; }
+    m = v.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+    if (m) { let y = m[3]; if (y.length===2) y = (Number(y)>=70? '19':'20') + y; const d=('0'+m[1]).slice(-2), mo=('0'+m[2]).slice(-2); return `${d}/${mo}/${y}`; }
+    return v;
   }
   function todayYMD(){
     const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
@@ -373,29 +355,22 @@ function fmtDateTh(dStr){
   }
   function showLoading(show){ document.getElementById("loading").style.display = show? "flex":"none"; }
 
-  /************ API Calls ************/
+  /************ API ************/
   async function apiList(){
     const res = await fetch(API_URL);
     const j = await res.json();
     if(!j.ok) throw new Error(j.error||"list_failed");
     return j.rows || [];
   }
-
-  // helper form-urlencoded (POST)
   function toForm(bodyObj){ return 'payload=' + encodeURIComponent(JSON.stringify(bodyObj)); }
-
-  // helper GET fallback (action + payload + ts)
   async function apiGET(action, payload){
     const url = new URL(API_URL);
     url.searchParams.set('action', action);
     url.searchParams.set('payload', JSON.stringify(payload));
-    url.searchParams.set('ts', Date.now().toString()); // กัน cache
+    url.searchParams.set('ts', Date.now().toString());
     const res = await fetch(url.toString());
-    const j = await res.json();
-    return j;
+    return await res.json();
   }
-
-  // wrapper: พยายาม POST ก่อน ถ้าล้มเหลว (เครือข่าย/CORS) จะ fallback เป็น GET
   async function tryPostThenGet(action, payload){
     try {
       const res = await fetch(API_URL, {
@@ -403,34 +378,15 @@ function fmtDateTh(dStr){
         headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},
         body: toForm({action, ...payload})
       });
-      const j = await res.json();
-      return j;
+      return await res.json();
     } catch (e) {
-      // POST ถูก browser บล็อก (Failed to fetch) → ลอง GET
       return await apiGET(action, payload);
     }
   }
-
-  async function apiCreateSingle(bk){
-    const j = await tryPostThenGet('create', bk);
-    if(!j.ok) throw j;
-    return j;
-  }
-  async function apiCreateRange(rangePayload){
-    const j = await tryPostThenGet('create_range', rangePayload);
-    if(!j.ok) throw j; // {error:'conflicts', conflicts:[...]}
-    return j;
-  }
-  async function apiUpdate(id, bk){
-    const j = await tryPostThenGet('update', {id, ...bk});
-    if(!j.ok) throw j;
-    return j;
-  }
-  async function apiDelete(id){
-    const j = await tryPostThenGet('delete', {id});
-    if(!j.ok) throw j;
-    return j;
-  }
+  async function apiCreateSingle(bk){ const j = await tryPostThenGet('create', bk); if(!j.ok) throw j; return j; }
+  async function apiCreateRange(rangePayload){ const j = await tryPostThenGet('create_range', rangePayload); if(!j.ok) throw j; return j; }
+  async function apiUpdate(id, bk){ const j = await tryPostThenGet('update', {id, ...bk}); if(!j.ok) throw j; return j; }
+  async function apiDelete(id){ const j = await tryPostThenGet('delete', {id}); if(!j.ok) throw j; return j; }
 
   /************ Admin ************/
   function isAdmin(){ return sessionStorage.getItem("isAdmin")==="1"; }
@@ -571,7 +527,7 @@ function fmtDateTh(dStr){
   }
   function closeDayModal(){ showBackdrop("dayModal", false); }
 
-  /************ Create/Edit Modal ************/
+  /************ Create/Edit ************/
   function openCreateModal(prefillYMD=null){
     currentEditingId = null;
     document.getElementById("createModalTitle").textContent = "สร้างการจองห้องประชุม";
@@ -641,7 +597,6 @@ function fmtDateTh(dStr){
       ul.appendChild(li);
     });
 
-    // บล็อกตัวเลือกเวลาเริ่มที่ชน (ในวันเริ่มต้น)
     const blocked = new Set();
     list.forEach(x=>{
       const s = timeToIndex(x.start), e = timeToIndex(x.end);
@@ -833,7 +788,7 @@ function fmtDateTh(dStr){
     }
   }
 
-  /************ Init & Wiring ************/
+  /************ Init ************/
   async function reloadAndRefresh(){
     bookings = await apiList();
     renderCalendar();
@@ -855,31 +810,24 @@ function fmtDateTh(dStr){
       showLoading(false);
     }
 
-    // Calendar controls
     document.getElementById("prevMonthBtn").addEventListener("click", ()=>{ currentMonth--; if(currentMonth<0){ currentMonth=11; currentYear--; } renderCalendar(); });
     document.getElementById("nextMonthBtn").addEventListener("click", ()=>{ currentMonth++; if(currentMonth>11){ currentMonth=0; currentYear++; } renderCalendar(); });
     document.getElementById("todayBtn").addEventListener("click", ()=>{ const t=new Date(); currentYear=t.getFullYear(); currentMonth=t.getMonth(); renderCalendar(); });
 
-    // Open modals
     document.getElementById("openCreateBtn").addEventListener("click", ()=> openCreateModal());
     document.getElementById("adminBtn").addEventListener("click", ()=> openAdminModal());
 
-    // Date & time interactions
     document.getElementById("startDateInput").addEventListener("change", (e)=> updateBookedList(e.target.value));
-    document.getElementById("endDateInput").addEventListener("change", ()=> {/* ตรวจช่วงก่อน submit */});
     document.getElementById("startSel").addEventListener("change", ()=> updateEndOptions());
 
-    // Sorting
     document.querySelectorAll("th.sortable").forEach(th=> th.addEventListener("click", ()=> setSort(th.dataset.key)));
 
-    // Pagination
     document.getElementById("pageSizeSel").addEventListener("change", (e)=>{ pageSize=Number(e.target.value)||10; page=1; renderTable(); });
     document.getElementById("firstPageBtn").addEventListener("click", ()=>{ page=1; renderTable(); });
     document.getElementById("prevPageBtn").addEventListener("click", ()=>{ page=Math.max(1,page-1); renderTable(); });
     document.getElementById("nextPageBtn").addEventListener("click", ()=>{ const total=getSortedBookings().length; const maxP=Math.max(1,Math.ceil(total/pageSize)); page=Math.min(maxP,page+1); renderTable(); });
     document.getElementById("lastPageBtn").addEventListener("click", ()=>{ const total=getSortedBookings().length; page=Math.max(1,Math.ceil(total/pageSize)); renderTable(); });
 
-    // Admin form
     document.getElementById("adminForm").addEventListener("submit", handleAdminLogin);
   });
   </script>
