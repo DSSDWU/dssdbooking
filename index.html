@@ -18,9 +18,9 @@
 
   <style>
     :root {
-      --brand: #2563eb;
-      --brand-2: #0ea5e9;
-      --muted: #64748b;
+      --brand: #4f46e5; /* indigo-600 */
+      --brand-2: #6366f1; /* indigo-500 */
+      --muted: #64748b;   /* slate-500 */
       --ok: #16a34a;
       --warn: #eab308;
       --err: #dc2626;
@@ -50,7 +50,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800">
   <!-- Top Bar -->
-  <header class="bg-gradient-to-r from-indigo-600 to-sky-500 text-white">
+  <header class="bg-gradient-to-r from-indigo-600 to-indigo-500 text-white">
     <div class="max-w-7xl mx-auto px-4 py-5 flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
       <div class="flex items-center gap-3">
         <span class="mi text-white/90 text-3xl">event</span>
@@ -81,11 +81,10 @@
           <button id="nextMonthBtn" class="rounded-lg border border-slate-200 px-3 py-2 hover:bg-slate-50"><span class="mi">chevron_right</span></button>
         </div>
         <h2 id="monthLabel" class="text-lg sm:text-xl font-semibold text-slate-900"></h2>
-    <div class="flex items-center gap-3 text-xs sm:text-sm text-slate-600">
-  <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-indigo-500"></span>มีการจอง</span>
-  <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-300"></span>ว่าง</span>
-</div>
-
+        <div class="flex items-center gap-3 text-xs sm:text-sm text-slate-600">
+          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-indigo-500"></span>มีการจอง</span>
+          <span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-slate-300"></span>ว่าง</span>
+        </div>
       </div>
 
       <!-- Weekday header -->
@@ -157,7 +156,7 @@
             <h4 id="dayModalTitle" class="text-lg font-semibold">รายละเอียดการจอง</h4>
             <p id="dayModalSub" class="text-sm text-slate-500"></p>
           </div>
-          <button class="rounded-lg p-2 hover:bg-slate-50" onclick="closeDayModal()"><span class="mi">close</span></button>
+        <button class="rounded-lg p-2 hover:bg-slate-50" onclick="closeDayModal()"><span class="mi">close</span></button>
         </div>
         <div id="dayModalBody" class="mt-4 space-y-3"></div>
         <div class="mt-5 flex items-center justify-end gap-2">
@@ -184,9 +183,26 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
           <div class="space-y-1">
-            <label for="dateInput" class="text-sm text-slate-700">เลือกวันที่<span class="text-red-500">*</span></label>
-            <input id="dateInput" type="date" class="w-full rounded-lg border border-slate-300 px-3 py-2" required />
-            <p id="dateHelp" class="text-xs text-slate-500">เมื่อเลือกวันที่ ระบบจะแสดงรายการที่ถูกจองแล้ว และจำกัดช่วงเวลาที่เลือกได้</p>
+            <label class="text-sm text-slate-700">วันที่เริ่ม<span class="text-red-500">*</span></label>
+            <input id="startDateInput" type="date" class="w-full rounded-lg border border-slate-300 px-3 py-2" required />
+            <p class="text-xs text-slate-500">สำหรับจองหลายวัน ให้เลือก “วันที่สิ้นสุด” ด้านขวา</p>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-sm text-slate-700">วันที่สิ้นสุด<span class="text-red-500">*</span></label>
+            <input id="endDateInput" type="date" class="w-full rounded-lg border border-slate-300 px-3 py-2" required />
+            <p class="text-xs text-slate-500">หากจองวันเดียว ให้เลือกเป็นวันเดียวกับวันที่เริ่ม</p>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-sm text-slate-700">เวลาเริ่มต้น<span class="text-red-500">*</span></label>
+            <select id="startSel" class="w-full rounded-lg border border-slate-300 px-3 py-2" required></select>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-sm text-slate-700">เวลาสิ้นสุด<span class="text-red-500">*</span></label>
+            <select id="endSel" class="w-full rounded-lg border border-slate-300 px-3 py-2" required></select>
+            <p id="timeHelp" class="text-xs text-slate-500"></p>
           </div>
 
           <div class="space-y-1">
@@ -215,14 +231,8 @@
           </div>
 
           <div class="space-y-1">
-            <label class="text-sm text-slate-700">เวลาเริ่มต้น<span class="text-red-500">*</span></label>
-            <select id="startSel" class="w-full rounded-lg border border-slate-300 px-3 py-2" required></select>
-          </div>
-
-          <div class="space-y-1">
-            <label class="text-sm text-slate-700">เวลาสิ้นสุด<span class="text-red-500">*</span></label>
-            <select id="endSel" class="w-full rounded-lg border border-slate-300 px-3 py-2" required></select>
-            <p id="timeHelp" class="text-xs text-slate-500"></p>
+            <label class="text-sm text-slate-700">จำนวนคน (ตัวเลขเท่านั้น)<span class="text-red-500">*</span></label>
+            <input id="attInput" type="number" min="1" step="1" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="เช่น 20" required />
           </div>
 
           <div class="space-y-1 sm:col-span-2">
@@ -230,14 +240,9 @@
             <input id="titleInput" type="text" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="เช่น ประชุมคณะทำงาน..." required />
           </div>
 
-          <div class="space-y-1 sm:col-span-2">
-            <label class="text-sm text-slate-700">จำนวนคน (ตัวเลขเท่านั้น)<span class="text-red-500">*</span></label>
-            <input id="attInput" type="number" min="1" step="1" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="เช่น 20" required />
-          </div>
-
           <div class="sm:col-span-2">
             <div class="rounded-xl border border-slate-200 p-3 bg-slate-50">
-              <div class="flex items-center gap-2 text-slate-700 text-sm font-medium mb-2"><span class="mi">info</span> รายการที่ถูกจองแล้วในวันเลือก</div>
+              <div class="flex items-center gap-2 text-slate-700 text-sm font-medium mb-2"><span class="mi">info</span> รายการที่ถูกจองแล้ว (อิงวันเริ่มต้น)</div>
               <ul id="bookedList" class="text-xs sm:text-sm space-y-1 text-slate-700">
                 <li class="text-slate-500">— ยังไม่มีข้อมูล —</li>
               </ul>
@@ -272,11 +277,11 @@
         <div id="adminFields" class="grid grid-cols-1 gap-3 mt-4">
           <div>
             <label class="text-sm text-slate-700">ผู้ใช้</label>
-            <input id="adminUser" type="text" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="User" />
+            <input id="adminUser" type="text" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="เช่น dssdwu" />
           </div>
           <div>
             <label class="text-sm text-slate-700">รหัสผ่าน</label>
-            <input id="adminPass" type="password" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="Password" />
+            <input id="adminPass" type="password" class="w-full rounded-lg border border-slate-300 px-3 py-2" placeholder="เช่น dssd2566" />
           </div>
         </div>
         <div class="mt-5 flex items-center justify-end gap-2">
@@ -289,10 +294,8 @@
     </div>
   </div>
 
-  <!-- Toast container -->
+  <!-- Toast & Loading -->
   <div id="toastWrap" class="toast-wrap"></div>
-
-  <!-- Loading overlay -->
   <div id="loading" class="loading-backdrop">
     <div class="bg-white rounded-2xl p-6 elevate flex flex-col items-center gap-3">
       <div class="spinner"></div>
@@ -301,106 +304,105 @@
   </div>
 
   <script>
-  // ======= Constants / Helpers =======
+  /************ CONFIG: ใส่ URL ของ Web App จาก Apps Script ************/
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxg8RqH6jDNHd9QHk4l5xmM5q8XGuJRR8fASRG6EyHB1JG3fjZfJf6VwTk7NxWB7QEvTg/exec'; // <-- เปลี่ยนตรงนี้เป็น URL ของคุณ
+
+  /************ Global State ************/
   const ROOM_NAME = "ห้องประชุมส่วนส่งเสริมและพัฒนานักศึกษา";
-  const LS_KEY = "wu_room_bookings_v1";
   const dayNames = ["อาทิตย์","จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์","เสาร์"];
   const monthNamesTh = ["มกราคม","กุมภาพันธ์","มีนาคม","เมษายน","พฤษภาคม","มิถุนายน","กรกฎาคม","สิงหาคม","กันยายน","ตุลาคม","พฤศจิกายน","ธันวาคม"];
 
-  // Time range 08:30 - 22:00 step 30 min
   const START_MINUTES = 8*60 + 30;
-  const END_MINUTES = 22*60 + 0;
+  const END_MINUTES   = 22*60;
   const STEP = 30;
 
-  let currentEditingId = null; // null = create, id = edit
-  let currentYear, currentMonth; // calendar state
+  let currentEditingId = null; // null=create; id=edit (single record)
+  let currentYear, currentMonth;
+  let bookings = []; // ทั้งหมดจาก API
 
-  function minutesToHHMM(total){
-    const h = Math.floor(total/60).toString().padStart(2,"0");
-    const m = (total%60).toString().padStart(2,"0");
-    return `${h}:${m}`;
-  }
-  function HHMMtoMinutes(hhmm){
-    const [h,m] = hhmm.split(":").map(Number);
-    return h*60 + m;
-  }
-  function timePoints(){
-    const pts = [];
-    for(let t=START_MINUTES; t<=END_MINUTES; t+=STEP){ pts.push(minutesToHHMM(t)); }
-    return pts;
-  }
-  function timeToIndex(hhmm){ return Math.round((HHMMtoMinutes(hhmm) - START_MINUTES)/STEP); }
+  /************ Helpers ************/
+  function minutesToHHMM(total){ const h=String(Math.floor(total/60)).padStart(2,"0"); const m=String(total%60).padStart(2,"0"); return `${h}:${m}`; }
+  function hhmmToMinutes(hhmm){ const [h,m]=hhmm.split(":").map(Number); return h*60+m; }
+  function timePoints(){ const pts=[]; for(let t=START_MINUTES; t<=END_MINUTES; t+=STEP) pts.push(minutesToHHMM(t)); return pts; }
+  function timeToIndex(hhmm){ return Math.round((hhmmToMinutes(hhmm)-START_MINUTES)/STEP); }
   function indexToTime(idx){ return minutesToHHMM(START_MINUTES + idx*STEP); }
 
   function fmtDateTh(dStr){
     const [y,m,d] = dStr.split("-").map(Number);
-    return `${d.toString().padStart(2,"0")}/${m.toString().padStart(2,"0")}/${y}`;
+    return `${String(d).padStart(2,"0")}/${String(m).padStart(2,"0")}/${y}`;
   }
   function todayYMD(){
-    const d = new Date();
-    const yy = d.getFullYear();
-    const mm = (d.getMonth()+1).toString().padStart(2,"0");
-    const dd = d.getDate().toString().padStart(2,"0");
-    return `${yy}-${mm}-${dd}`;
+    const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
   }
 
-  // ======= Storage Layer =======
-  function loadBookings(){
-    try{
-      const raw = localStorage.getItem(LS_KEY);
-      if(!raw) return [];
-      const arr = JSON.parse(raw);
-      return Array.isArray(arr) ? arr : [];
-    }catch(e){ return []; }
+  function showBackdrop(id, show){ document.getElementById(id).style.display = show ? "block" : "none"; }
+  function showToast(msg, type="info"){
+    const wrap = document.getElementById("toastWrap");
+    const div = document.createElement("div");
+    const color = type==="ok" ? "bg-green-600" : type==="err" ? "bg-red-600" : "bg-slate-800";
+    const icon = type==="ok" ? "check_circle" : type==="err" ? "error" : "info";
+    div.className = `text-white ${color} rounded-xl px-4 py-3 elevate flex items-start gap-2 w-[min(92vw,420px)]`;
+    div.innerHTML = `<span class="mi">${icon}</span> <div class="text-sm leading-5">${msg}</div>`;
+    wrap.appendChild(div);
+    setTimeout(()=>{ div.style.opacity="0"; div.style.transform="translateY(10px)"; }, 2600);
+    setTimeout(()=>{ wrap.removeChild(div); }, 3000);
   }
-  function saveBookings(arr){ localStorage.setItem(LS_KEY, JSON.stringify(arr)); }
+  function showLoading(show){ document.getElementById("loading").style.display = show? "flex":"none"; }
 
-  function isOverlap(sIdx, eIdx, S, E){ return sIdx < E && eIdx > S; }
-
-  function validateBooking(bk, ignoreId=null){
-    const list = loadBookings();
-
-    const dupSamePair = list.some(x =>
-      x.id !== ignoreId &&
-      x.room===bk.room && x.date===bk.date && x.start===bk.start && x.end===bk.end
-    );
-    if(dupSamePair) throw new Error("มีการจองช่วงเวลาเดียวกันในวันนี้อยู่แล้ว");
-
-    const sIdx = timeToIndex(bk.start);
-    const eIdx = timeToIndex(bk.end);
-    if(sIdx>=eIdx) throw new Error("ช่วงเวลาไม่ถูกต้อง");
-
-    const overlap = list.some(x=>{
-      if(x.id===ignoreId) return false;
-      if(x.room!==bk.room || x.date!==bk.date) return false;
-      const S = timeToIndex(x.start);
-      const E = timeToIndex(x.end);
-      return isOverlap(sIdx, eIdx, S, E);
-    });
-    if(overlap) throw new Error("ช่วงเวลาที่เลือกชนกับรายการจองอื่น");
+  /************ API Calls ************/
+  async function apiList(){
+    const res = await fetch(API_URL);
+    const j = await res.json();
+    if(!j.ok) throw new Error(j.error||"list_failed");
+    return j.rows || [];
   }
-
-  function addBooking(bk){
-    validateBooking(bk, null);
-    const list = loadBookings();
-    list.push({...bk, id: crypto.randomUUID()});
-    saveBookings(list);
+  async function apiCreateSingle(bk){
+    const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'create', ...bk}) });
+    const j = await res.json();
+    if(!j.ok) throw new Error(j.error||"create_failed");
+    return j;
   }
-  function updateBooking(id, bk){
-    validateBooking(bk, id);
-    const list = loadBookings();
-    const idx = list.findIndex(x => x.id===id);
-    if(idx===-1) throw new Error("ไม่พบบันทึกที่จะปรับปรุง");
-    list[idx] = {...bk, id};
-    saveBookings(list);
+  async function apiCreateRange(rangePayload){
+    const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'create_range', ...rangePayload}) });
+    const j = await res.json();
+    if(!j.ok) throw j; // ให้ฝั่ง UI ตรวจ j.error === 'conflicts'
+    return j;
   }
-  function removeBooking(id){
-    const list = loadBookings();
-    const next = list.filter(x => x.id !== id);
-    saveBookings(next);
+  async function apiUpdate(id, bk){
+    const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'update', id, ...bk}) });
+    const j = await res.json();
+    if(!j.ok) throw new Error(j.error||"update_failed");
+    return j;
+  }
+  async function apiDelete(id){
+    const res = await fetch(API_URL, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action:'delete', id}) });
+    const j = await res.json();
+    if(!j.ok) throw new Error(j.error||"delete_failed");
+    return j;
   }
 
-  // ======= Calendar =======
+  /************ Admin ************/
+  function isAdmin(){ return sessionStorage.getItem("isAdmin")==="1"; }
+  function setAdmin(flag){ sessionStorage.setItem("isAdmin", flag ? "1":"0"); updateAdminUI(); refreshAll(); }
+  function updateAdminUI(){ document.getElementById("adminBadge").classList.toggle("hidden", !isAdmin()); }
+  function openAdminModal(){
+    const logged = isAdmin();
+    showBackdrop("adminModal", true);
+    document.getElementById("adminLoggedBox").classList.toggle("hidden", !logged);
+    document.getElementById("adminFields").classList.toggle("hidden", logged);
+    document.getElementById("logoutBtn").classList.toggle("hidden", !logged);
+  }
+  function closeAdminModal(){ showBackdrop("adminModal", false); }
+  function handleAdminLogin(e){
+    e.preventDefault();
+    const u = (document.getElementById("adminUser").value||"").trim();
+    const p = (document.getElementById("adminPass").value||"").trim();
+    if(u==="dssdwu" && p==="dssd2566"){ setAdmin(true); showToast("เข้าสู่ระบบผู้ดูแลสำเร็จ","ok"); closeAdminModal(); }
+    else { showToast("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง","err"); }
+  }
+  function doLogout(){ setAdmin(false); showToast("ออกจากระบบแล้ว","ok"); closeAdminModal(); }
+
+  /************ Calendar ************/
   function renderCalendar(){
     const cal = document.getElementById("calendarGrid");
     cal.innerHTML = "";
@@ -419,15 +421,14 @@
     }
 
     const today = todayYMD();
-
     for(let d=1; d<=lastDate; d++){
-      const ymd = `${currentYear}-${(currentMonth+1).toString().padStart(2,"0")}-${d.toString().padStart(2,"0")}`;
-      const daily = loadBookings().filter(x => x.date === ymd);
+      const ymd = `${currentYear}-${String(currentMonth+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+      const daily = bookings.filter(x => x.date === ymd);
       const has = daily.length>0;
 
       const card = document.createElement("button");
       card.className = "text-left rounded-xl border h-20 sm:h-24 md:h-28 p-2 flex flex-col justify-between hover:border-indigo-300 transition bg-white";
-      card.classList.add(has ? "border-red-200" : "border-green-200");
+      card.classList.add(has ? "border-indigo-200" : "border-slate-200");
 
       const top = document.createElement("div");
       top.className = "flex items-center justify-between";
@@ -438,16 +439,15 @@
       bdg.className = "text-[10px] rounded-full px-2 py-0.5";
       if(ymd===today){
         bdg.textContent = "วันนี้";
-        bdg.classList.add("bg-sky-100","text-sky-700","border","border-sky-200");
+        bdg.classList.add("bg-indigo-50","text-indigo-700","border","border-indigo-200");
       }
-      top.appendChild(dn);
-      top.appendChild(bdg);
+      top.appendChild(dn); top.appendChild(bdg);
 
       const list = document.createElement("div");
       list.className = "space-y-1";
       daily.slice(0,3).forEach(bk=>{
         const it = document.createElement("div");
-        it.className = "text-[11px] px-2 py-1 rounded-md bg-red-50 text-red-700 border border-red-100 truncate";
+        it.className = "text-[11px] px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 border border-indigo-100 truncate";
         it.textContent = `${bk.start}-${bk.end} • ${bk.title}`;
         list.appendChild(it);
       });
@@ -461,10 +461,9 @@
       card.appendChild(top);
       card.appendChild(list);
 
-    const dot = document.createElement("span");
-    dot.className = `w-2 h-2 rounded-full ${has? "bg-indigo-500":"bg-slate-300"}`;
-    card.appendChild(dot);
-
+      const dot = document.createElement("span");
+      dot.className = `w-2 h-2 rounded-full ${has? "bg-indigo-500":"bg-slate-300"}`;
+      card.appendChild(dot);
 
       card.addEventListener("click", ()=> openDayModal(ymd));
       cal.appendChild(card);
@@ -480,9 +479,7 @@
     const body = document.getElementById("dayModalBody");
     body.innerHTML = "";
 
-    const daily = loadBookings().filter(x => x.date===ymd).sort((a,b)=>{
-      return timeToIndex(a.start) - timeToIndex(b.start);
-    });
+    const daily = bookings.filter(x => x.date===ymd).sort((a,b)=> timeToIndex(a.start) - timeToIndex(b.start));
 
     if(daily.length===0){
       body.innerHTML = `<div class="text-slate-600 text-sm">ยังไม่มีการจองในวันนี้</div>`;
@@ -506,35 +503,37 @@
           const btns = row.querySelector('[data-id]');
           const id = bk.id;
           btns.children[0].addEventListener("click", ()=> { openEditModal(id); closeDayModal(); });
-          btns.children[1].addEventListener("click", ()=>{
-            confirmDelete(id, ()=>{ openDayModal(ymd); refreshAll(); });
+          btns.children[1].addEventListener("click", async ()=>{
+            if(!confirm("ยืนยันการลบรายการนี้?")) return;
+            await apiDelete(id);
+            await reloadAndRefresh();
+            openDayModal(ymd);
+            showToast("ลบรายการแล้ว","ok");
           });
         }
         body.appendChild(row);
       });
     }
 
-    const bookBtn = document.getElementById("dayModalBookBtn");
-    bookBtn.onclick = ()=>{
-      openCreateModal(ymd);
-      closeDayModal();
-    };
-
+    document.getElementById("dayModalBookBtn").onclick = ()=>{ openCreateModal(ymd); closeDayModal(); };
     showBackdrop("dayModal", true);
   }
   function closeDayModal(){ showBackdrop("dayModal", false); }
 
-  // ======= Create/Edit Modal & Time Logic =======
+  /************ Create/Edit Modal ************/
   function openCreateModal(prefillYMD=null){
     currentEditingId = null;
     document.getElementById("createModalTitle").textContent = "สร้างการจองห้องประชุม";
     document.getElementById("submitBtnLabel").textContent = "บันทึกการจอง";
 
-    const dateEl = document.getElementById("dateInput");
-    dateEl.value = prefillYMD || todayYMD();
+    const startDateEl = document.getElementById("startDateInput");
+    const endDateEl   = document.getElementById("endDateInput");
+    const today = prefillYMD || todayYMD();
+    startDateEl.value = today;
+    endDateEl.value   = today;
 
     populateTimeSelects();
-    updateBookedListAndDisable(dateEl.value, null);
+    updateBookedList(startDateEl.value);
 
     document.getElementById("bookerSel").value = "";
     document.getElementById("titleInput").value = "";
@@ -544,20 +543,22 @@
   }
 
   function openEditModal(id){
-    const list = loadBookings();
-    const bk = list.find(x=>x.id===id);
+    const bk = bookings.find(x=>x.id===id);
     if(!bk){ showToast("ไม่พบรายการที่ต้องการแก้ไข","err"); return; }
     currentEditingId = id;
 
     document.getElementById("createModalTitle").textContent = "แก้ไขการจองห้องประชุม";
     document.getElementById("submitBtnLabel").textContent = "บันทึกการเปลี่ยนแปลง";
 
-    document.getElementById("dateInput").value = bk.date;
+    document.getElementById("startDateInput").value = bk.date;
+    document.getElementById("endDateInput").value   = bk.date;
+
     populateTimeSelects();
-    updateBookedListAndDisable(bk.date, id);
+    updateBookedList(bk.date);
     document.getElementById("startSel").value = bk.start;
-    updateEndOptions(id);
+    updateEndOptions();
     document.getElementById("endSel").value = bk.end;
+
     document.getElementById("bookerSel").value = bk.booker;
     document.getElementById("titleInput").value = bk.title;
     document.getElementById("attInput").value = bk.attendees;
@@ -572,47 +573,29 @@
     const startSel = document.getElementById("startSel");
     const endSel = document.getElementById("endSel");
     startSel.innerHTML = `<option value="" selected disabled>— เลือกเวลาเริ่มต้น —</option>`;
-    endSel.innerHTML = `<option value="" selected disabled>— เลือกเวลาสิ้นสุด —</option>`;
-
-    for(let i=0;i<pts.length-1;i++){
-      const opt = document.createElement("option");
-      opt.value = pts[i];
-      opt.textContent = pts[i];
-      startSel.appendChild(opt);
-    }
-    for(let i=1;i<pts.length;i++){
-      const opt = document.createElement("option");
-      opt.value = pts[i];
-      opt.textContent = pts[i];
-      endSel.appendChild(opt);
-    }
+    endSel.innerHTML   = `<option value="" selected disabled>— เลือกเวลาสิ้นสุด —</option>`;
+    for(let i=0;i<pts.length-1;i++){ const o=document.createElement("option"); o.value=pts[i]; o.textContent=pts[i]; startSel.appendChild(o); }
+    for(let i=1;i<pts.length;i++){ const o=document.createElement("option"); o.value=pts[i]; o.textContent=pts[i]; endSel.appendChild(o); }
     document.getElementById("timeHelp").textContent = "";
   }
 
-  function updateBookedListAndDisable(ymd, ignoreId=null){
-    const list = loadBookings()
-      .filter(x => x.date===ymd)
-      .filter(x => x.id !== ignoreId)
-      .sort((a,b)=> timeToIndex(a.start)-timeToIndex(b.start));
-
+  function updateBookedList(ymd){
+    const list = bookings.filter(x => x.date===ymd).sort((a,b)=> timeToIndex(a.start)-timeToIndex(b.start));
     const ul = document.getElementById("bookedList");
     ul.innerHTML = "";
-    if(list.length===0){
-      ul.innerHTML = `<li class="text-slate-500">— ยังไม่มีข้อมูล —</li>`;
-    }else{
-      list.forEach(x=>{
-        const li = document.createElement("li");
-        li.textContent = `${x.start} - ${x.end} • ${x.title} • ${x.booker}`;
-        ul.appendChild(li);
-      });
-    }
+    if(list.length===0) ul.innerHTML = `<li class="text-slate-500">— ยังไม่มีข้อมูล —</li>`;
+    else list.forEach(x=>{
+      const li = document.createElement("li");
+      li.textContent = `${x.start} - ${x.end} • ${x.title} • ${x.booker}`;
+      ul.appendChild(li);
+    });
 
+    // Disable start options that lie inside booked blocks for that day (client-side hint only)
     const blocked = new Set();
     list.forEach(x=>{
       const s = timeToIndex(x.start), e = timeToIndex(x.end);
       for(let k=s; k<e; k++) blocked.add(k);
     });
-
     const startSel = document.getElementById("startSel");
     [...startSel.options].forEach(opt=>{
       if(!opt.value) return;
@@ -622,36 +605,26 @@
 
     document.getElementById("startSel").value = "";
     document.getElementById("endSel").value = "";
-    updateEndOptions(ignoreId);
+    updateEndOptions();
   }
 
-  function updateEndOptions(ignoreId=null){
+  function updateEndOptions(){
     const startVal = document.getElementById("startSel").value;
     const endSel = document.getElementById("endSel");
-    const dateVal = document.getElementById("dateInput").value;
-    const daily = loadBookings().filter(x => x.date===dateVal && x.id !== ignoreId);
+    const dateVal = document.getElementById("startDateInput").value;
+    const daily = bookings.filter(x => x.date===dateVal);
 
-    [...endSel.options].forEach(opt=>{
-      if(!opt.value) return;
-      opt.disabled = false;
-      opt.hidden = false;
-    });
+    [...endSel.options].forEach(opt=>{ if(opt.value){ opt.disabled=false; opt.hidden=false; } });
 
-    if(!startVal){
-      document.getElementById("timeHelp").textContent = "";
-      return;
-    }
+    if(!startVal){ document.getElementById("timeHelp").textContent = ""; return; }
     const sIdx = timeToIndex(startVal);
 
     let firstBlocked = Infinity;
     daily.forEach(x=>{
       const S = timeToIndex(x.start), E = timeToIndex(x.end);
       if(E<=sIdx) return;
-      if(S<=sIdx && E> sIdx){
-        firstBlocked = Math.min(firstBlocked, E);
-      }else if(S> sIdx){
-        firstBlocked = Math.min(firstBlocked, S);
-      }
+      if(S<=sIdx && E> sIdx){ firstBlocked = Math.min(firstBlocked, E); }
+      else if(S> sIdx){ firstBlocked = Math.min(firstBlocked, S); }
     });
 
     const maxEndIdx = (isFinite(firstBlocked) ? firstBlocked : (timePoints().length-0));
@@ -659,8 +632,7 @@
       if(!opt.value) return;
       const eIdx = timeToIndex(opt.value);
       const dis = (eIdx <= sIdx) || (eIdx > maxEndIdx);
-      opt.disabled = dis;
-      opt.hidden = dis;
+      opt.disabled = dis; opt.hidden = dis;
     });
 
     const endHelp = (isFinite(firstBlocked))
@@ -669,33 +641,26 @@
     document.getElementById("timeHelp").textContent = endHelp;
   }
 
-  // ======= Table (Sort + Pagination) =======
+  /************ Table (Sort + Pagination) ************/
   let sortKey = "date";
   let sortDir = "asc";
   let page = 1;
   let pageSize = 10;
 
   function getSortedBookings(){
-    const list = loadBookings();
-    const out = [...list].sort((a,b)=>{
+    const list = [...bookings];
+    const out = list.sort((a,b)=>{
       let va, vb;
       if(sortKey==="time"){
-        va = timeToIndex(a.start);
-        vb = timeToIndex(b.start);
-        if(a.date!==b.date){
-          return (a.date < b.date ? -1: 1) * (sortDir==="asc"?1:-1);
-        }
+        va = timeToIndex(a.start); vb = timeToIndex(b.start);
+        if(a.date!==b.date) return (a.date<b.date? -1:1) * (sortDir==="asc"?1:-1);
       }else if(sortKey==="attendees"){
-        va = Number(a.attendees);
-        vb = Number(b.attendees);
-      }else if(sortKey==="date"){
-        va = a.date; vb = b.date;
-      }else{
-        va = a[sortKey]; vb = b[sortKey];
-      }
+        va = Number(a.attendees); vb = Number(b.attendees);
+      }else if(sortKey==="date"){ va = a.date; vb = b.date; }
+      else { va = a[sortKey]; vb = b[sortKey]; }
       if(va<vb) return (sortDir==="asc"? -1: 1);
       if(va>vb) return (sortDir==="asc"? 1: -1);
-      const ti = timeToIndex(a.start) - timeToIndex(b.start);
+      const ti = timeToIndex(a.start)-timeToIndex(b.start);
       if(ti!==0) return ti*(sortDir==="asc"?1:-1);
       return (a.title||"").localeCompare(b.title||"")*(sortDir==="asc"?1:-1);
     });
@@ -743,7 +708,12 @@
             const id = btn.getAttribute("data-id");
             const act = btn.getAttribute("data-action");
             if(act==="del"){
-              btn.addEventListener("click", ()=> confirmDelete(id, ()=>{ renderTable(); renderCalendar(); showToast("ลบรายการแล้ว","ok"); }));
+              btn.addEventListener("click", async ()=>{
+                if(!confirm("ยืนยันการลบรายการนี้?")) return;
+                await apiDelete(id);
+                await reloadAndRefresh();
+                showToast("ลบรายการแล้ว","ok");
+              });
             }else if(act==="edit"){
               btn.addEventListener("click", ()=> openEditModal(id));
             }
@@ -761,172 +731,109 @@
   }
 
   function setSort(key){
-    if(sortKey===key){
-      sortDir = (sortDir==="asc" ? "desc" : "asc");
-    }else{
-      sortKey = key;
-      sortDir = "asc";
-    }
+    if(sortKey===key){ sortDir = (sortDir==="asc" ? "desc" : "asc"); }
+    else { sortKey = key; sortDir = "asc"; }
     renderTable();
   }
 
-  // ======= Admin =======
-  function isAdmin(){ return sessionStorage.getItem("isAdmin")==="1"; }
-  function setAdmin(flag){
-    sessionStorage.setItem("isAdmin", flag ? "1":"0");
-    updateAdminUI();
-    refreshAll();
-  }
-  function updateAdminUI(){
-    document.getElementById("adminBadge").classList.toggle("hidden", !isAdmin());
-  }
-
-  function openAdminModal(){
-    const logged = isAdmin();
-    showBackdrop("adminModal", true);
-    document.getElementById("adminLoggedBox").classList.toggle("hidden", !logged);
-    document.getElementById("adminFields").classList.toggle("hidden", logged);
-    document.getElementById("logoutBtn").classList.toggle("hidden", !logged);
-  }
-  function closeAdminModal(){ showBackdrop("adminModal", false); }
-  function handleAdminLogin(e){
+  /************ Submit ************/
+  async function handleCreateSubmit(e){
     e.preventDefault();
-    const u = (document.getElementById("adminUser").value || "").trim();
-    const p = (document.getElementById("adminPass").value || "").trim();
-    if(u==="dssd" && p==="dssd2566"){
-      setAdmin(true);
-      showToast("เข้าสู่ระบบผู้ดูแลสำเร็จ","ok");
-      closeAdminModal();
-    }else{
-      showToast("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง","err");
-    }
-  }
-  function doLogout(){
-    setAdmin(false);
-    showToast("ออกจากระบบแล้ว","ok");
-    closeAdminModal();
-  }
-
-  // ======= UI Utilities =======
-  function showBackdrop(id, show){
-    const el = document.getElementById(id);
-    el.style.display = show ? "block" : "none";
-  }
-  function showToast(msg, type="info"){
-    const wrap = document.getElementById("toastWrap");
-    const div = document.createElement("div");
-    const color = type==="ok" ? "bg-green-600" : type==="err" ? "bg-red-600" : "bg-slate-800";
-    const icon = type==="ok" ? "check_circle" : type==="err" ? "error" : "info";
-    div.className = `text-white ${color} rounded-xl px-4 py-3 elevate flex items-start gap-2 w-[min(92vw,420px)]`;
-    div.innerHTML = `<span class="mi">`+icon+`</span> <div class="text-sm leading-5">${msg}</div>`;
-    wrap.appendChild(div);
-    setTimeout(()=>{ div.style.opacity="0"; div.style.transform="translateY(10px)"; }, 2600);
-    setTimeout(()=>{ wrap.removeChild(div); }, 3000);
-  }
-  function showLoading(show){
-    document.getElementById("loading").style.display = show? "flex":"none";
-  }
-  function confirmDelete(id, after){
-    if(!isAdmin()){ showToast("ต้องเป็นผู้ดูแลระบบจึงจะลบได้","err"); return; }
-    if(!confirm("ยืนยันการลบรายการนี้?")) return;
-    removeBooking(id);
-    after && after();
-  }
-
-  // ======= Form Submit =======
-  function handleCreateSubmit(e){
-    e.preventDefault();
-    const date = document.getElementById("dateInput").value;
-    const start = document.getElementById("startSel").value;
-    const end = document.getElementById("endSel").value;
-    const title = document.getElementById("titleInput").value.trim();
+    const startDate = document.getElementById("startDateInput").value;
+    const endDate   = document.getElementById("endDateInput").value;
+    const start     = document.getElementById("startSel").value;
+    const end       = document.getElementById("endSel").value;
+    const title     = document.getElementById("titleInput").value.trim();
     const attendees = Number(document.getElementById("attInput").value);
-    const booker = document.getElementById("bookerSel").value;
+    const booker    = document.getElementById("bookerSel").value;
 
-    if(!date || !start || !end || !title || !booker || !Number.isFinite(attendees) || attendees<=0){
+    if(!startDate || !endDate || !start || !end || !title || !booker || !Number.isFinite(attendees) || attendees<=0){
       showToast("กรุณากรอกข้อมูลให้ครบและถูกต้อง","err"); return;
     }
-    if(timeToIndex(end) <= timeToIndex(start)){
+    if (timeToIndex(end) <= timeToIndex(start)) {
       showToast("เวลาสิ้นสุดต้องมากกว่าเวลาเริ่มต้น","err"); return;
     }
 
-    const booking = { room: ROOM_NAME, date, start, end, title, attendees, booker };
     try{
       showLoading(true);
-      setTimeout(()=>{
-        if(currentEditingId){
-          updateBooking(currentEditingId, booking);
-          showToast("บันทึกการเปลี่ยนแปลงแล้ว","ok");
-        }else{
-          addBooking(booking);
+      if(currentEditingId){
+        // แก้ไขเฉพาะรายการเดี่ยว
+        await apiUpdate(currentEditingId, { room: ROOM_NAME, date: startDate, start, end, title, attendees, booker });
+        showToast("บันทึกการเปลี่ยนแปลงแล้ว","ok");
+      }else{
+        // สร้าง: ถ้าเลือกหลายวัน ให้ใช้ create_range (all-or-nothing)
+        if (endDate !== startDate) {
+          const res = await apiCreateRange({ room: ROOM_NAME, startDate, endDate, start, end, title, attendees, booker });
+          if(!res.ok && res.error==='conflicts'){
+            // ไม่ควรมาถึงนี่เพราะ throw แล้ว แต่กันไว้
+            const dates = (res.conflicts||[]).map(c=>fmtDateTh(c.date)).join(", ");
+            throw new Error("ชนเวลาในวัน: "+dates);
+          }
+          showToast(`บันทึกการจองสำเร็จ (${res.days.length} วัน)`, "ok");
+        } else {
+          await apiCreateSingle({ room: ROOM_NAME, date: startDate, start, end, title, attendees, booker });
           showToast("บันทึกการจองสำเร็จ","ok");
         }
-        showLoading(false);
-        closeCreateModal();
-        refreshAll();
-      }, 400);
+      }
+      closeCreateModal();
+      await reloadAndRefresh();
     }catch(err){
+      // กรณี API ส่ง {ok:false, error:'conflicts', conflicts:[{date,type},...]}
+      if (err && err.error === 'conflicts' && Array.isArray(err.conflicts)) {
+        const dates = err.conflicts.map(c=>fmtDateTh(c.date)).join(", ");
+        showToast(`ช่วงเวลาชนหรือซ้ำในวัน: ${dates}`,"err");
+      } else {
+        showToast(err.message || "ไม่สามารถบันทึกได้","err");
+      }
+    }finally{
       showLoading(false);
-      showToast(err.message || "ไม่สามารถบันทึกได้","err");
     }
   }
 
-  // ======= Init & Wiring =======
-  function refreshAll(){
+  /************ Init & Wiring ************/
+  async function reloadAndRefresh(){
+    bookings = await apiList();
     renderCalendar();
     renderTable();
   }
+  function refreshAll(){ renderCalendar(); renderTable(); }
 
-  document.addEventListener("DOMContentLoaded", ()=>{
-    const now = new Date();
-    currentYear = now.getFullYear();
-    currentMonth = now.getMonth();
+  document.addEventListener("DOMContentLoaded", async ()=>{
+    const now = new Date(); currentYear = now.getFullYear(); currentMonth = now.getMonth();
 
     updateAdminUI();
-    refreshAll();
+    showLoading(true);
+    try{
+      await reloadAndRefresh();
+    }catch(e){
+      showToast("ดึงข้อมูลไม่สำเร็จ ตรวจ API_URL","err");
+    }finally{
+      showLoading(false);
+    }
 
     // Calendar controls
-    document.getElementById("prevMonthBtn").addEventListener("click", ()=>{
-      currentMonth--; if(currentMonth<0){ currentMonth=11; currentYear--; } renderCalendar();
-    });
-    document.getElementById("nextMonthBtn").addEventListener("click", ()=>{
-      currentMonth++; if(currentMonth>11){ currentMonth=0; currentYear++; } renderCalendar();
-    });
-    document.getElementById("todayBtn").addEventListener("click", ()=>{
-      const t = new Date();
-      currentYear = t.getFullYear();
-      currentMonth = t.getMonth();
-      renderCalendar();
-    });
+    document.getElementById("prevMonthBtn").addEventListener("click", ()=>{ currentMonth--; if(currentMonth<0){ currentMonth=11; currentYear--; } renderCalendar(); });
+    document.getElementById("nextMonthBtn").addEventListener("click", ()=>{ currentMonth++; if(currentMonth>11){ currentMonth=0; currentYear++; } renderCalendar(); });
+    document.getElementById("todayBtn").addEventListener("click", ()=>{ const t=new Date(); currentYear=t.getFullYear(); currentMonth=t.getMonth(); renderCalendar(); });
 
     // Open modals
     document.getElementById("openCreateBtn").addEventListener("click", ()=> openCreateModal());
     document.getElementById("adminBtn").addEventListener("click", ()=> openAdminModal());
 
     // Date & time interactions
-    document.getElementById("dateInput").addEventListener("change", (e)=> { updateBookedListAndDisable(e.target.value, currentEditingId); });
-    document.getElementById("startSel").addEventListener("change", ()=> updateEndOptions(currentEditingId));
+    document.getElementById("startDateInput").addEventListener("change", (e)=> updateBookedList(e.target.value));
+    document.getElementById("endDateInput").addEventListener("change", ()=> {/* ใช้ตรวจช่วงก่อน submit */});
+    document.getElementById("startSel").addEventListener("change", ()=> updateEndOptions());
 
     // Sorting
-    document.querySelectorAll("th.sortable").forEach(th=>{
-      th.addEventListener("click", ()=> setSort(th.dataset.key));
-    });
+    document.querySelectorAll("th.sortable").forEach(th=> th.addEventListener("click", ()=> setSort(th.dataset.key)));
 
     // Pagination
-    document.getElementById("pageSizeSel").addEventListener("change", (e)=>{
-      pageSize = Number(e.target.value)||10; page = 1; renderTable();
-    });
+    document.getElementById("pageSizeSel").addEventListener("change", (e)=>{ pageSize=Number(e.target.value)||10; page=1; renderTable(); });
     document.getElementById("firstPageBtn").addEventListener("click", ()=>{ page=1; renderTable(); });
-    document.getElementById("prevPageBtn").addEventListener("click", ()=>{ page=Math.max(1, page-1); renderTable(); });
-    document.getElementById("nextPageBtn").addEventListener("click", ()=>{
-      const total = getSortedBookings().length;
-      const maxP = Math.max(1, Math.ceil(total/pageSize));
-      page = Math.min(maxP, page+1); renderTable();
-    });
-    document.getElementById("lastPageBtn").addEventListener("click", ()=>{
-      const total = getSortedBookings().length;
-      page = Math.max(1, Math.ceil(total/pageSize)); renderTable();
-    });
+    document.getElementById("prevPageBtn").addEventListener("click", ()=>{ page=Math.max(1,page-1); renderTable(); });
+    document.getElementById("nextPageBtn").addEventListener("click", ()=>{ const total=getSortedBookings().length; const maxP=Math.max(1,Math.ceil(total/pageSize)); page=Math.min(maxP,page+1); renderTable(); });
+    document.getElementById("lastPageBtn").addEventListener("click", ()=>{ const total=getSortedBookings().length; page=Math.max(1,Math.ceil(total/pageSize)); renderTable(); });
 
     // Admin form
     document.getElementById("adminForm").addEventListener("submit", handleAdminLogin);
